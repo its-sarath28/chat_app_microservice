@@ -11,6 +11,10 @@ import { RegisterDto } from '@app/common/dto/auth/auth.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // ====================================
+  // Message Patterns
+  // ====================================
+
   @MessagePattern(PATTERN.USER.FIND_BY_EMAIL)
   findByEmail(@Payload() email: string) {
     return this.userService.findByEmail(email);
@@ -21,13 +25,22 @@ export class UserController {
     return this.userService.createUser(data);
   }
 
-  @EventPattern(PATTERN.USER.UPDATE_REFRESH_TOKEN)
-  updateRefreshToken(@Payload() data: RefreshTokenDto) {
-    return this.userService.updateRefreshToken(data);
-  }
-
   @MessagePattern(PATTERN.USER.GET_REFRESH_TOKEN)
   getRefreshTokens(@Payload() data: { userId: number; token: string }) {
     return this.userService.getRefreshTokens(data);
+  }
+
+  @MessagePattern(PATTERN.USER.GET_PROFILE)
+  getProfile(@Payload() data: { userId: number }) {
+    return this.userService.getProfile(data.userId);
+  }
+
+  // ====================================
+  // Event Patterns
+  // ====================================
+
+  @EventPattern(PATTERN.USER.UPDATE_REFRESH_TOKEN)
+  updateRefreshToken(@Payload() data: RefreshTokenDto) {
+    return this.userService.updateRefreshToken(data);
   }
 }

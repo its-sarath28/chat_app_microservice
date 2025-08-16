@@ -14,3 +14,17 @@ export class RefreshTokenDto {
   @Min(1)
   userId: number;
 }
+
+export class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
+  fullName: string;
+
+  @IsOptional()
+  @IsString()
+  email: string;
+
+  @IsOptional()
+  @IsString()
+  username: string;
+}

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -7,7 +7,10 @@ import { User } from '../entity/user.entity';
 import { RefreshToken } from '../entity/refreshToken.entity';
 
 import { RegisterDto } from '@app/common/dto/auth/auth.dto';
-import { RefreshTokenDto } from '@app/common/dto/user/user.dto';
+import {
+  RefreshTokenDto,
+  UpdateProfileDto,
+} from '@app/common/dto/user/user.dto';
 
 @Injectable()
 export class UserService {
@@ -75,5 +78,36 @@ export class UserService {
     });
 
     return token;
+  }
+
+  async getProfile(id: number): Promise<User> {
+    const user: User | null = await this.userRepo.findOneBy({ id });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  async updateProfile(
+    id: number,
+    updateData: UpdateProfileDto,
+    file?: Express.Multer.File,
+  ) {
+    const user: User | null = await this.userRepo.findOneBy({ id });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // TODO: Upload avatar file
+
+    await this.userRepo.update(id, { ...updateData });
+
+    return {
+      success: true,
+      data: (await this.userRepo.findOne({ where: { id } }))!,
+    };
   }
 }
