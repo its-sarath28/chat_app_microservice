@@ -24,4 +24,14 @@ export class JwtToken {
 
     return refreshToken;
   }
+
+  verifyRefreshToken(token: string) {
+    return this.jwtService.verify(token, {
+      secret: process.env.JWT_REFRESH_SECRET,
+    });
+  }
+
+  decodeRefreshToken(token: string) {
+    return this.jwtService.decode(token) as { userId: number; email: string };
+  }
 }

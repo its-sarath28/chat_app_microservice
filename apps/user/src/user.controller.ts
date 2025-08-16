@@ -25,4 +25,9 @@ export class UserController {
   updateRefreshToken(@Payload() data: RefreshTokenDto) {
     return this.userService.updateRefreshToken(data);
   }
+
+  @MessagePattern(PATTERN.USER.GET_REFRESH_TOKEN)
+  getRefreshTokens(@Payload() data: { userId: number; token: string }) {
+    return this.userService.getRefreshTokens(data);
+  }
 }

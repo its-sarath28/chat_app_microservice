@@ -20,4 +20,9 @@ export class AuthController {
   loginUser(@Payload() loginDto: LoginDto) {
     return this.authService.loginUser(loginDto);
   }
+
+  @MessagePattern(PATTERN.AUTH.REFRESH_TOKEN)
+  refreshToken(@Payload() token: string) {
+    return this.authService.refreshToken(token);
+  }
 }

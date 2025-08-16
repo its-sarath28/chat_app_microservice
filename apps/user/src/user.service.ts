@@ -39,6 +39,18 @@ export class UserService {
   }
 
   async updateRefreshToken(data: RefreshTokenDto) {
+    if (data.oldToken) {
+      const existingToken: RefreshToken | null =
+        await this.refreshTokenRepo.findOne({
+          where: { token: data.oldToken, user: { id: data.userId } },
+        });
+
+      if (existingToken) {
+        existingToken.token = data.token;
+        await this.refreshTokenRepo.save(existingToken);
+      }
+    }
+
     const tokens: RefreshToken[] = await this.refreshTokenRepo.find({
       where: { user: { id: data.userId } },
       order: { id: 'ASC' },
@@ -55,5 +67,13 @@ export class UserService {
     });
 
     await this.refreshTokenRepo.save(newToken);
+  }
+
+  async getRefreshTokens(data: { userId: number; token: string }) {
+    const token: RefreshToken | null = await this.refreshTokenRepo.findOne({
+      where: { user: { id: data.userId }, token: data.token },
+    });
+
+    return token;
   }
 }
