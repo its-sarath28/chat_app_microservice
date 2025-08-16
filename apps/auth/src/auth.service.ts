@@ -1,0 +1,85 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+import * as bcrypt from 'bcrypt';
+
+import { User } from 'apps/user/entity/user.entity';
+
+import { LoginDto, RegisterDto } from '@app/common/dto/auth/auth.dto';
+import { JwtToken } from '@app/common/jwt/generateToken.jwt';
+import { PATTERN } from '@app/common/pattern/pattern';
+import { USER_CLIENT } from '@app/common/token/token';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    @Inject(USER_CLIENT) private userClient: ClientProxy,
+    private readonly jwtToken: JwtToken,
+  ) {}
+
+  async registerUser(data: RegisterDto) {
+    console.log('Checking user');
+    const existingUser: User | null = await firstValueFrom(
+      this.userClient.send<User | null>(PATTERN.USER.FIND_BY_EMAIL, data.email),
+    );
+
+    console.log('Getting user result');
+
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
+    }
+
+    console.log('Creating user');
+    const user: User = await firstValueFrom(
+      this.userClient.send(PATTERN.USER.CREATE_USER, data),
+    );
+    console.log('User created');
+
+    const accessToken: string = await this.jwtToken.generateAccessToken(
+      user.id,
+      user.email,
+    );
+    const refreshToken: string = await this.jwtToken.generateRefreshToken(
+      user.id,
+      user.email,
+    );
+
+    this.userClient.emit(PATTERN.USER.UPDATE_REFRESH_TOKEN, {
+      userId: user.id,
+      token: refreshToken,
+    });
+
+    return { accessToken, refreshToken };
+  }
+
+  async loginUser(data: LoginDto) {
+    const user: User | null = await firstValueFrom(
+      this.userClient.send<User | null>(PATTERN.USER.FIND_BY_EMAIL, data.email),
+    );
+
+    if (!user || !(await bcrypt.compare(data.password, user.password))) {
+      throw new BadRequestException('Invalid credentials');
+    }
+
+    const accessToken: string = await this.jwtToken.generateAccessToken(
+      user.id,
+      user.email,
+    );
+    const refreshToken: string = await this.jwtToken.generateRefreshToken(
+      user.id,
+      user.email,
+    );
+
+    this.userClient.emit(PATTERN.USER.UPDATE_REFRESH_TOKEN, {
+      userId: user.id,
+      token: refreshToken,
+    });
+
+    return { accessToken, refreshToken };
+  }
+}

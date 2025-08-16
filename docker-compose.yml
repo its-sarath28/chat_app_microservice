@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: chat_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - ../DATABASE/postgres-data:/var/lib/postgresql/data
+    networks:
+      - chat-network
+
+  mongo:
+    image: mongo:6
+    container_name: mongo_db
+    ports:
+      - '27017:27017'
+    volumes:
+      - ../DATABASE/mongo-data:/data/db
+    networks:
+      - chat-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - chat-network
+
+  redis:
+    image: redis:7
+    ports: ['6379:6379']
+    volumes:
+      - ../DATABASE/redis-data:/data
+    networks:
+      - chat-network
+
+networks:
+  chat-network:
