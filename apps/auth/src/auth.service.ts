@@ -25,22 +25,19 @@ export class AuthService {
   ) {}
 
   async registerUser(data: RegisterDto) {
-    console.log('Checking user');
     const existingUser: User | null = await firstValueFrom(
-      this.userClient.send<User | null>(PATTERN.USER.FIND_BY_EMAIL, data.email),
+      this.userClient.send<User | null>(PATTERN.USER.FIND_BY_EMAIL, {
+        email: data.email,
+      }),
     );
-
-    console.log('Getting user result');
 
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
 
-    console.log('Creating user');
     const user: User = await firstValueFrom(
       this.userClient.send(PATTERN.USER.CREATE_USER, data),
     );
-    console.log('User created');
 
     const accessToken: string = await this.jwtToken.generateAccessToken(
       user.id,
@@ -61,7 +58,9 @@ export class AuthService {
 
   async loginUser(data: LoginDto) {
     const user: User | null = await firstValueFrom(
-      this.userClient.send<User | null>(PATTERN.USER.FIND_BY_EMAIL, data.email),
+      this.userClient.send<User | null>(PATTERN.USER.FIND_BY_EMAIL, {
+        email: data.email,
+      }),
     );
 
     if (!user || !(await bcrypt.compare(data.password, user.password))) {

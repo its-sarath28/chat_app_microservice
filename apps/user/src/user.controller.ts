@@ -16,8 +16,8 @@ export class UserController {
   // ====================================
 
   @MessagePattern(PATTERN.USER.FIND_BY_EMAIL)
-  findByEmail(@Payload() email: string) {
-    return this.userService.findByEmail(email);
+  findByEmail(@Payload() data: { email: string }) {
+    return this.userService.findByEmail(data.email);
   }
 
   @MessagePattern(PATTERN.USER.CREATE_USER)
