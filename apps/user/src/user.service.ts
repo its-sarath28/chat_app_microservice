@@ -11,11 +11,13 @@ import {
   RefreshTokenDto,
   UpdateProfileDto,
 } from '@app/common/dto/user/user.dto';
+import { Block } from '../entity/block.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(Block) private blockRepo: Repository<Block>,
     @InjectRepository(RefreshToken)
     private refreshTokenRepo: Repository<RefreshToken>,
   ) {}
@@ -109,5 +111,45 @@ export class UserService {
       success: true,
       data: (await this.userRepo.findOne({ where: { id } }))!,
     };
+  }
+
+  async toggleBlock(blockerId: number, blockedId: number) {
+    const alreadyBlocked: Block | null = await this.blockRepo.findOne({
+      where: {
+        blockerId: { id: blockerId },
+        blockedId: { id: blockedId },
+      },
+    });
+
+    if (alreadyBlocked) {
+      await this.blockRepo.delete(alreadyBlocked);
+
+      return { success: true, message: 'Unblocked user' };
+    }
+
+    const newBlock = this.blockRepo.create({
+      blockedId: { id: blockedId },
+      blockerId: { id: blockerId },
+      blockedOn: new Date(),
+    });
+
+    await this.blockRepo.save(newBlock);
+
+    return { success: true, message: 'Blocked user' };
+  }
+
+  async getBlockedList(userId: number) {
+    const list: Block[] = await this.blockRepo.find({
+      where: { blockerId: { id: userId } },
+      relations: ['blocked'],
+    });
+
+    const formattedResponse = list.map((block: Block) => ({
+      id: block.blockedId.id,
+      fullName: block.blockedId.fullName,
+      imageUrl: block.blockedId.imageUrl ?? null,
+    }));
+
+    return formattedResponse;
   }
 }

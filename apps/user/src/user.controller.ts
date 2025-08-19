@@ -35,6 +35,16 @@ export class UserController {
     return this.userService.getProfile(data.userId);
   }
 
+  @MessagePattern(PATTERN.USER.TOGGLE_BLOCK)
+  toggleBlock(@Payload() data: { blockerId: number; blockedId: number }) {
+    return this.userService.toggleBlock(data.blockerId, data.blockerId);
+  }
+
+  @MessagePattern(PATTERN.USER.GET_BLOCK_LIST)
+  getBlockedList(@Payload() data: { userId: number }) {
+    return this.userService.getBlockedList(data.userId);
+  }
+
   // ====================================
   // Event Patterns
   // ====================================

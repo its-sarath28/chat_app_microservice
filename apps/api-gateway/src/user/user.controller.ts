@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import { UserService } from './user.service';
@@ -15,9 +23,21 @@ export class UserController {
     return this.userService.getProfile(req.user.userId);
   }
 
+  @Get('block-list')
+  @UseGuards(AuthGuard())
+  getBlockedList(@Req() req: any) {
+    return this.userService.getBlockedList(req.user.userId);
+  }
+
   @Patch('me')
   @UseGuards(AuthGuard())
   updateProfile(@Req() req: any, @Body() data: UpdateProfileDto) {
     return this.userService.updateProfile(req.user.userId, data);
+  }
+
+  @Patch('toggle-block/:blockedId')
+  @UseGuards(AuthGuard())
+  toggleBlock(@Req() req: any, @Param('blockedId') blockedId: string) {
+    return this.userService.toggleBlock(req.user.userId, +blockedId);
   }
 }

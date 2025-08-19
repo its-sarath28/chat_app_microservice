@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { RefreshToken } from './refreshToken.entity';
+import { Block } from './block.entity';
 
 @Entity()
 export class User {
@@ -24,4 +25,10 @@ export class User {
 
   @OneToMany(() => RefreshToken, (token) => token.user, { cascade: true })
   refreshTokens: RefreshToken[];
+
+  @OneToMany(() => Block, (block) => block.blockerId, { cascade: true })
+  blockedUsers: Block[];
+
+  @OneToMany(() => Block, (block) => block.blockedId, { cascade: true })
+  blockedByUsers: Block[];
 }

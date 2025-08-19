@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 
 import { UserController } from './user.controller';
 
 import { UserService } from './user.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
+import { Block } from '../entity/block.entity';
 import { RefreshToken } from '../entity/refreshToken.entity';
-import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { ConfigModule } from '@nestjs/config';
       entities: [User, RefreshToken],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User, RefreshToken]),
+    TypeOrmModule.forFeature([User, RefreshToken, Block]),
   ],
   controllers: [UserController],
   providers: [UserService],
