@@ -12,16 +12,29 @@ services:
       - ../DATABASE/postgres-data:/var/lib/postgresql/data
     networks:
       - chat-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U user -d chat_db']
+      interval: 5s
+      retries: 5
 
   mongo:
     image: mongo:6
     container_name: mongo_db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: chat_db
     ports:
       - '27017:27017'
     volumes:
       - ../DATABASE/mongo-data:/data/db
     networks:
       - chat-network
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -31,16 +44,28 @@ services:
     ports:
       - '5672:5672'
       - '15672:15672'
+    volumes:
+      - ../DATABASE/rabbitmq-data:/var/lib/rabbitmq
     networks:
       - chat-network
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      interval: 5s
+      retries: 5
 
   redis:
     image: redis:7
-    ports: ['6379:6379']
+    ports:
+      - '6379:6379'
     volumes:
       - ../DATABASE/redis-data:/data
+    command: ['redis-server', '--appendonly', 'yes']
     networks:
       - chat-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      retries: 5
 
 networks:
   chat-network:

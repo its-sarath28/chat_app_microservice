@@ -23,7 +23,10 @@ export class UserService {
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
-    const user: User | null = await this.userRepo.findOneBy({ email });
+    const user: User | null = await this.userRepo.findOne({
+      where: { email },
+      select: ['id', 'email', 'password'],
+    });
 
     return user;
   }

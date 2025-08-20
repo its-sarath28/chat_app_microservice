@@ -15,7 +15,7 @@ export class Message {
   @Prop({ type: Number, required: true })
   receiver: number;
 
-  @Prop({ enum: MESSAGE_TYPE, required: true })
+  @Prop({ type: String, enum: Object.values(MESSAGE_TYPE), required: true })
   type: MESSAGE_TYPE;
 
   @Prop({ type: String, default: null })

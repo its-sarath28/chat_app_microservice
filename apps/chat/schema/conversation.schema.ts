@@ -6,7 +6,7 @@ export type ConversationDocument = Conversation & Document;
 
 @Schema()
 export class Conversation {
-  @Prop({ enum: CHAT_TYPE, default: CHAT_TYPE.DIRECT })
+  @Prop({ type: String, enum: CHAT_TYPE, default: CHAT_TYPE.DIRECT })
   type: CHAT_TYPE;
 
   @Prop({ type: String, default: null })

@@ -20,7 +20,7 @@ export class User {
   @Column({ default: null })
   imageUrl?: string;
 
-  @Column()
+  @Column({ select: false })
   password: string;
 
   @OneToMany(() => RefreshToken, (token) => token.user, { cascade: true })

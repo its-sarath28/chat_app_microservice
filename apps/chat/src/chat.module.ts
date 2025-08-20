@@ -8,10 +8,16 @@ import { ConversationSchema } from '../schema/conversation.schema';
 import { MemberSchema } from '../schema/member.schema';
 import { MessageSchema } from '../schema/message.schema';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { USER_CLIENT } from '@app/common/token/token';
+import { USER_CLIENT, USER_QUEUE } from '@app/common/token/token';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true,
+    }),
+    MongooseModule.forRoot(process.env.MONGO_URI!),
     MongooseModule.forFeature([
       { name: 'Conversation', schema: ConversationSchema },
       { name: 'Member', schema: MemberSchema },
@@ -23,7 +29,7 @@ import { USER_CLIENT } from '@app/common/token/token';
         transport: Transport.RMQ,
         options: {
           urls: [process.env.RABBITMQ_URL!],
-          queue: 'user_service_q',
+          queue: USER_QUEUE,
         },
       },
     ]),
