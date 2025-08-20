@@ -14,4 +14,9 @@ export const PATTERN = {
     GET_REFRESH_TOKEN: { cmd: 'get_refresh_token' },
     UPDATE_REFRESH_TOKEN: { cmd: 'update_refresh_token' },
   },
+  CHAT: {
+    GET_CONVERSATION: { cmd: 'get_conversation' },
+    CREATE_CONVERSATION: { cmd: 'create_conversation' },
+    GET_ALL_CONVERSATIONS: { cmd: 'get_all_conversations' },
+  },
 };
