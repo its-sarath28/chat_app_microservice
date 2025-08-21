@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpCode,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -14,6 +19,7 @@ import {
 import { Block } from '../entity/block.entity';
 import { Friendship } from '../entity/friendship.entity';
 import { FRIENDSHIP_STATUS } from '../enum/user.enum';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class UserService {
@@ -105,7 +111,10 @@ export class UserService {
     const user: User | null = await this.userRepo.findOneBy({ id });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'User not found',
+      });
     }
 
     return user;
@@ -119,7 +128,10 @@ export class UserService {
     const user: User | null = await this.userRepo.findOneBy({ id });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'User not found',
+      });
     }
 
     // TODO: Upload avatar file
@@ -201,7 +213,12 @@ export class UserService {
       relations: ['user', 'friend'],
     });
 
-    if (!friendship) throw new NotFoundException('Request not found');
+    if (!friendship) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Request not found',
+      });
+    }
 
     friendship.status = FRIENDSHIP_STATUS.ACCEPTED;
 
@@ -221,7 +238,12 @@ export class UserService {
       },
     });
 
-    if (!friendship) throw new NotFoundException('Request not found');
+    if (!friendship) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Request not found',
+      });
+    }
 
     await this.friendshipRepo.remove(friendship);
 

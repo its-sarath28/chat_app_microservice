@@ -1,11 +1,11 @@
 import {
   BadRequestException,
-  ConflictException,
+  HttpStatus,
   Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import * as bcrypt from 'bcrypt';
 import { TokenExpiredError } from '@nestjs/jwt';
@@ -32,7 +32,10 @@ export class AuthService {
     );
 
     if (existingUser) {
-      throw new ConflictException('Email already exists');
+      throw new RpcException({
+        statusCode: HttpStatus.CONFLICT,
+        message: 'Email already exists',
+      });
     }
 
     const user: User = await firstValueFrom(
@@ -64,7 +67,10 @@ export class AuthService {
     );
 
     if (!user || !(await bcrypt.compare(data.password, user.password))) {
-      throw new BadRequestException('Invalid credentials');
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Invalid credentials',
+      });
     }
 
     const accessToken: string = await this.jwtToken.generateAccessToken(
@@ -98,7 +104,10 @@ export class AuthService {
       );
 
       if (!savedToken) {
-        throw new UnauthorizedException('Invalid refresh token');
+        throw new RpcException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Invalid refresh token',
+        });
       }
 
       const accessToken = await this.jwtToken.generateAccessToken(
@@ -132,7 +141,10 @@ export class AuthService {
         return { accessToken: newAccessToken, refreshToken: newRefreshToken };
       }
 
-      throw new UnauthorizedException('Invalid token');
+      throw new RpcException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'Invalid token',
+      });
     }
   }
 }

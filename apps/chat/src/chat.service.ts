@@ -1,6 +1,7 @@
 import mongoose, { Model } from 'mongoose';
 import {
   BadRequestException,
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -20,7 +21,7 @@ import {
 } from '@app/common/dto/chat/chat.dto';
 import { MEMBER_ROLE } from '../enum/chat.enum';
 import { USER_CLIENT } from '@app/common/token/token';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { PATTERN } from '@app/common/pattern/pattern';
 import { User } from 'apps/user/entity/user.entity';
 import { firstValueFrom } from 'rxjs';
@@ -64,7 +65,12 @@ export class ChatService {
   async getConversation(id: string) {
     const conver: Conversation | null = await this.converModel.findById(id);
 
-    if (!conver) throw new NotFoundException('Conversation not found');
+    if (!conver) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Conversation not found',
+      });
+    }
 
     return conver;
   }
@@ -99,12 +105,18 @@ export class ChatService {
     );
 
     if (!updated)
-      throw new NotFoundException('Conversation to update not found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Conversation to update not found',
+      });
   }
 
   async checkConversationExists(conversationId: string): Promise<void> {
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
-      throw new NotFoundException('Invalid conversation ID');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Invalid conversation ID',
+      });
     }
 
     const exists = await this.converModel.exists({
@@ -112,7 +124,10 @@ export class ChatService {
     });
 
     if (!exists) {
-      throw new NotFoundException('Conversation not found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Conversation not found',
+      });
     }
   }
 
@@ -150,8 +165,12 @@ export class ChatService {
         { new: true, upsert: true },
       );
 
-    if (!updatedMessage)
-      throw new NotFoundException('Message to update not found');
+    if (!updatedMessage) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Message to update not found',
+      });
+    }
 
     return { success: true, data: updatedMessage };
   }
@@ -206,7 +225,10 @@ export class ChatService {
     });
 
     if (inValidUserIds.length) {
-      throw new BadRequestException("Some user id's are invalid");
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_GATEWAY,
+        message: `Some user id's are invalid`,
+      });
     }
 
     const newMembers = validUserIds.map((user) => ({
@@ -228,7 +250,12 @@ export class ChatService {
 
     const removed = await this.memberModel.findByIdAndDelete(memberId);
 
-    if (!removed) throw new NotFoundException('Member to remove not found');
+    if (!removed) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Member to remove not found',
+      });
+    }
 
     return { success: true, message: 'Member removed successfully' };
   }
@@ -238,7 +265,12 @@ export class ChatService {
 
     const member: Member | null = await this.memberModel.findById(memberId);
 
-    if (!member) throw new NotFoundException('Member not found');
+    if (!member) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Member not found',
+      });
+    }
 
     return member.role;
   }
@@ -257,7 +289,10 @@ export class ChatService {
     );
 
     if (!updated) {
-      throw new NotFoundException('Member to update not found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Member to update not found',
+      });
     }
 
     return { success: true, message: 'Member role updated successfully' };
