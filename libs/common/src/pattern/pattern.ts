@@ -8,6 +8,7 @@ export const PATTERN = {
     GET_PROFILE: { cmd: 'get_profile' },
     CREATE_USER: { cmd: 'create_user' },
     TOGGLE_BLOCK: { cmd: 'toggle_block' },
+    SEARCH_USERS: { cmd: 'search_users' },
     FIND_BY_EMAIL: { cmd: 'find_by_email' },
     GET_BLOCK_LIST: { cmd: 'get_block_list' },
     UPDATE_PROFILE: { cmd: 'update_profile' },

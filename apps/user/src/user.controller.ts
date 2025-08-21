@@ -75,6 +75,11 @@ export class UserController {
     return this.userService.getIncomingRequests(data.userId);
   }
 
+  @MessagePattern(PATTERN.USER.SEARCH_USERS)
+  searchUsers(@Payload() data: { query: string }) {
+    return this.userService.searchUsers(data.query);
+  }
+
   // ====================================
   // Event Patterns
   // ====================================

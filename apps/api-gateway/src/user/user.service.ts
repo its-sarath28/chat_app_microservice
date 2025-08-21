@@ -100,4 +100,12 @@ export class UserService {
       this.userClient.send(PATTERN.USER.GET_INCOMING_REQUESTS, { userId }),
     );
   }
+
+  async searchUsers(query: string) {
+    if (query.trim() === '') return [];
+
+    return await firstValueFrom(
+      this.userClient.send(PATTERN.USER.SEARCH_USERS, { query }),
+    );
+  }
 }

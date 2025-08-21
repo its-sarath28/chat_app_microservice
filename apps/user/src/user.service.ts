@@ -35,6 +35,15 @@ export class UserService {
     return user;
   }
 
+  async searchUsers(query: string) {
+    const users: User[] = await this.userRepo.find({
+      where: [{ username: query }, { fullName: query }],
+      select: ['id', 'fullName', 'username', 'imageUrl'],
+    });
+
+    return users;
+  }
+
   async createUser(data: RegisterDto): Promise<User> {
     const { email, password, username, fullName } = data;
 

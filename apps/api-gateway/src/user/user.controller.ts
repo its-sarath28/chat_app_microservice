@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -30,6 +31,12 @@ export class UserController {
   @UseGuards(AuthGuard())
   getBlockedList(@Req() req: AuthUser) {
     return this.userService.getBlockedList(req.user.id);
+  }
+
+  @Get('search')
+  @UseGuards(AuthGuard())
+  searchUsers(@Query('query') query: string) {
+    return this.userService.searchUsers(query);
   }
 
   @Get('friends')
