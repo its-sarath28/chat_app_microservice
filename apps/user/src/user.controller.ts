@@ -45,6 +45,36 @@ export class UserController {
     return this.userService.getBlockedList(data.userId);
   }
 
+  @MessagePattern(PATTERN.USER.GET_FRIENDS)
+  getFriends(@Payload() data: { userId: number }) {
+    return this.userService.getFriends(data.userId);
+  }
+
+  @MessagePattern(PATTERN.USER.GET_FRIENDS)
+  sendRequest(@Payload() data: { userId: number; friendId: number }) {
+    return this.userService.sendRequest(data.userId, data.friendId);
+  }
+
+  @MessagePattern(PATTERN.USER.ACCEPT_REQUEST)
+  acceptRequest(@Payload() data: { userId: number; friendId: number }) {
+    return this.userService.acceptRequest(data.userId, data.friendId);
+  }
+
+  @MessagePattern(PATTERN.USER.REJECT_REQUEST)
+  rejectRequest(@Payload() data: { userId: number; friendId: number }) {
+    return this.userService.rejectRequest(data.userId, data.friendId);
+  }
+
+  @MessagePattern(PATTERN.USER.CHECK_IS_FRIENDS)
+  areFriends(@Payload() data: { userId: number; friendId: number }) {
+    return this.userService.areFriends(data.userId, data.friendId);
+  }
+
+  @MessagePattern(PATTERN.USER.GET_INCOMING_REQUESTS)
+  getIncomingRequests(@Payload() data: { userId: number }) {
+    return this.userService.getIncomingRequests(data.userId);
+  }
+
   // ====================================
   // Event Patterns
   // ====================================

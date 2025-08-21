@@ -50,4 +50,54 @@ export class UserService {
       this.userClient.send(PATTERN.USER.GET_BLOCK_LIST, { userId }),
     );
   }
+
+  async getFriends(userId: number) {
+    return await firstValueFrom(
+      this.userClient.send(PATTERN.USER.GET_FRIENDS, { userId }),
+    );
+  }
+
+  async sendRequest(userId: number, friendId: number) {
+    if (userId === friendId) {
+      throw new BadRequestException('User ID and Friend ID cannot be the same');
+    }
+
+    const areFriends = await firstValueFrom(
+      this.userClient.send(PATTERN.USER.CHECK_IS_FRIENDS, { userId, friendId }),
+    );
+
+    if (areFriends) return { success: true, message: 'Already friends' };
+
+    return await firstValueFrom(
+      this.userClient.send(PATTERN.USER.SEND_REQUEST, { userId, friendId }),
+    );
+  }
+
+  async acceptRequest(userId: number, friendId: number) {
+    if (userId === friendId) {
+      throw new BadRequestException('User ID and Friend ID cannot be the same');
+    }
+
+    const areFriends = await firstValueFrom(
+      this.userClient.send(PATTERN.USER.CHECK_IS_FRIENDS, { userId, friendId }),
+    );
+
+    if (areFriends) return { success: true, message: 'Already friends' };
+
+    return await firstValueFrom(
+      this.userClient.send(PATTERN.USER.ACCEPT_REQUEST, { userId, friendId }),
+    );
+  }
+
+  async rejectRequest(userId: number, friendId: number) {
+    return await firstValueFrom(
+      this.userClient.send(PATTERN.USER.REJECT_REQUEST, { userId, friendId }),
+    );
+  }
+
+  async getIncomingRequests(userId: number) {
+    return await firstValueFrom(
+      this.userClient.send(PATTERN.USER.GET_INCOMING_REQUESTS, { userId }),
+    );
+  }
 }

@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
+  Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -30,6 +32,30 @@ export class UserController {
     return this.userService.getBlockedList(req.user.id);
   }
 
+  @Get('friends')
+  @UseGuards(AuthGuard())
+  getFriends(@Req() req: AuthUser) {
+    return this.userService.getFriends(req.user.id);
+  }
+
+  @Get('friends/requests')
+  @UseGuards(AuthGuard())
+  getIncomingRequests(@Req() req: AuthUser) {
+    return this.userService.getIncomingRequests(req.user.id);
+  }
+
+  @Post('friend/send-request')
+  @UseGuards(AuthGuard())
+  sendRequest(@Body() data: { friendId: number }, @Req() req: AuthUser) {
+    return this.userService.sendRequest(req.user.id, data.friendId);
+  }
+
+  @Patch('friend/accept-request')
+  @UseGuards(AuthGuard())
+  acceptRequest(@Body() data: { friendId: number }, @Req() req: AuthUser) {
+    return this.userService.acceptRequest(req.user.id, data.friendId);
+  }
+
   @Patch('me')
   @UseGuards(AuthGuard())
   updateProfile(@Req() req: AuthUser, @Body() data: UpdateProfileDto) {
@@ -40,5 +66,11 @@ export class UserController {
   @UseGuards(AuthGuard())
   toggleBlock(@Req() req: AuthUser, @Param('blockedId') blockedId: string) {
     return this.userService.toggleBlock(req.user.id, +blockedId);
+  }
+
+  @Delete('friend/reject-request')
+  @UseGuards(AuthGuard())
+  rejectRequest(@Body() data: { friendId: number }, @Req() req: AuthUser) {
+    return this.userService.rejectRequest(req.user.id, data.friendId);
   }
 }

@@ -8,6 +8,7 @@ import { UserService } from './user.service';
 import { User } from '../entity/user.entity';
 import { Block } from '../entity/block.entity';
 import { RefreshToken } from '../entity/refreshToken.entity';
+import { Friendship } from '../entity/friendship.entity';
 
 @Module({
   imports: [
@@ -22,10 +23,10 @@ import { RefreshToken } from '../entity/refreshToken.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [User, RefreshToken, Block],
+      entities: [User, RefreshToken, Block, Friendship],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User, RefreshToken, Block]),
+    TypeOrmModule.forFeature([User, RefreshToken, Block, Friendship]),
   ],
   controllers: [UserController],
   providers: [UserService],

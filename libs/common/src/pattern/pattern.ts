@@ -13,6 +13,13 @@ export const PATTERN = {
     UPDATE_PROFILE: { cmd: 'update_profile' },
     GET_REFRESH_TOKEN: { cmd: 'get_refresh_token' },
     UPDATE_REFRESH_TOKEN: { cmd: 'update_refresh_token' },
+
+    GET_FRIENDS: { cmd: 'get_friends' },
+    SEND_REQUEST: { cmd: 'send_request' },
+    ACCEPT_REQUEST: { cmd: 'accept_request' },
+    REJECT_REQUEST: { cmd: 'reject_request' },
+    CHECK_IS_FRIENDS: { cmd: 'check_is_friends' },
+    GET_INCOMING_REQUESTS: { cmd: 'get_incoming_requests' },
   },
   CHAT: {
     CHECK_IS_MEMBER: { cmd: 'check_is_member' },
