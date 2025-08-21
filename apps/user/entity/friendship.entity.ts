@@ -25,7 +25,11 @@ export class Friendship {
   @ManyToOne(() => User, (user) => user.friendOf, { onDelete: 'CASCADE' })
   friend: User;
 
-  @Column({ default: FRIENDSHIP_STATUS.PENDING })
+  @Column({
+    type: 'enum',
+    enum: FRIENDSHIP_STATUS,
+    default: FRIENDSHIP_STATUS.PENDING,
+  })
   status: FRIENDSHIP_STATUS;
 
   @CreateDateColumn()

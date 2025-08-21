@@ -50,7 +50,7 @@ export class UserController {
     return this.userService.getFriends(data.userId);
   }
 
-  @MessagePattern(PATTERN.USER.GET_FRIENDS)
+  @MessagePattern(PATTERN.USER.SEND_REQUEST)
   sendRequest(@Payload() data: { userId: number; friendId: number }) {
     return this.userService.sendRequest(data.userId, data.friendId);
   }

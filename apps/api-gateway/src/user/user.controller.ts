@@ -39,13 +39,13 @@ export class UserController {
     return this.userService.searchUsers(query);
   }
 
-  @Get('friends')
+  @Get('friend/all')
   @UseGuards(AuthGuard())
   getFriends(@Req() req: AuthUser) {
     return this.userService.getFriends(req.user.id);
   }
 
-  @Get('friends/requests')
+  @Get('friend/requests')
   @UseGuards(AuthGuard())
   getIncomingRequests(@Req() req: AuthUser) {
     return this.userService.getIncomingRequests(req.user.id);
@@ -69,7 +69,7 @@ export class UserController {
     return this.userService.updateProfile(req.user.id, data);
   }
 
-  @Patch('toggle-block/:blockedId')
+  @Patch('friend/toggle-block/:blockedId')
   @UseGuards(AuthGuard())
   toggleBlock(@Req() req: AuthUser, @Param('blockedId') blockedId: string) {
     return this.userService.toggleBlock(req.user.id, +blockedId);

@@ -53,7 +53,7 @@ export class AuthService {
       token: refreshToken,
     });
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, email: user.email };
   }
 
   async loginUser(data: LoginDto) {
@@ -81,14 +81,14 @@ export class AuthService {
       token: refreshToken,
     });
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, email: user.email };
   }
 
   async refreshToken(token: string) {
     try {
       const payload = this.jwtToken.verifyRefreshToken(token);
 
-      const userId = payload.userId;
+      const userId = payload.id;
 
       const savedToken = await firstValueFrom(
         this.userClient.send(PATTERN.USER.GET_REFRESH_TOKEN, {
@@ -115,16 +115,16 @@ export class AuthService {
         const payload = this.jwtToken.decodeRefreshToken(token);
 
         const newAccessToken = await this.jwtToken.generateAccessToken(
-          payload.userId,
+          payload.id,
           payload.email,
         );
         const newRefreshToken = await this.jwtToken.generateRefreshToken(
-          payload.userId,
+          payload.id,
           payload.email,
         );
 
         this.userClient.emit(PATTERN.USER.UPDATE_REFRESH_TOKEN, {
-          userId: payload.userId,
+          userId: payload.id,
           token: newRefreshToken,
           oldToken: token,
         });

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from '../entity/user.entity';
@@ -37,7 +37,10 @@ export class UserService {
 
   async searchUsers(query: string) {
     const users: User[] = await this.userRepo.find({
-      where: [{ username: query }, { fullName: query }],
+      where: [
+        { username: ILike(`%${query}%`) },
+        { fullName: ILike(`%${query}%`) },
+      ],
       select: ['id', 'fullName', 'username', 'imageUrl'],
     });
 
@@ -157,7 +160,7 @@ export class UserService {
   async getBlockedList(userId: number) {
     const list: Block[] = await this.blockRepo.find({
       where: { blockerId: { id: userId } },
-      relations: ['blocked'],
+      relations: ['blockedId'],
     });
 
     const formattedResponse = list.map((block: Block) => ({

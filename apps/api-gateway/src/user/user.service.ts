@@ -29,7 +29,7 @@ export class UserService {
 
   async toggleBlock(blockerId: number, blockedId: number) {
     if (blockedId === blockerId) {
-      throw new BadRequestException('Blocker and Blocked Id cannot be same');
+      throw new BadRequestException('User cannot do self block');
     }
 
     const user = await firstValueFrom(
