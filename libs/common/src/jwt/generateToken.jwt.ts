@@ -5,8 +5,8 @@ import { JwtService } from '@nestjs/jwt';
 export class JwtToken {
   constructor(private jwtService: JwtService) {}
 
-  async generateAccessToken(userId: number, email: string) {
-    const payload = { userId, email };
+  async generateAccessToken(id: number, email: string) {
+    const payload = { id, email };
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
       expiresIn: '2h',
@@ -15,8 +15,8 @@ export class JwtToken {
     return accessToken;
   }
 
-  async generateRefreshToken(userId: number, email: string) {
-    const payload = { userId, email };
+  async generateRefreshToken(id: number, email: string) {
+    const payload = { id, email };
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET,
       expiresIn: '30d',
@@ -32,6 +32,6 @@ export class JwtToken {
   }
 
   decodeRefreshToken(token: string) {
-    return this.jwtService.decode(token) as { userId: number; email: string };
+    return this.jwtService.decode(token) as { id: number; email: string };
   }
 }

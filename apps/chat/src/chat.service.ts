@@ -42,7 +42,7 @@ export class ChatService {
       type: data.type,
       createdBy: data.createdBy,
       createdOn: new Date(),
-      title: data.title ?? null,
+      groupName: data.groupName ?? null,
     });
 
     const members = data.members.map((member) => ({
@@ -126,6 +126,8 @@ export class ChatService {
 
     // TODO: Send message in real-time
     // TODO: Send message notification
+
+    await this.updateLastMessage(data.conversationId, data.text || ' ');
 
     return newMessage;
   }
@@ -259,5 +261,16 @@ export class ChatService {
     }
 
     return { success: true, message: 'Member role updated successfully' };
+  }
+
+  async checkIsMember(conversationId: string, memberId: number) {
+    const member: Member | null = await this.memberModel.findOne({
+      conversationId,
+      userId: memberId,
+    });
+
+    if (!member) return false;
+
+    return true;
   }
 }

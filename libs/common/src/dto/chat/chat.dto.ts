@@ -15,12 +15,7 @@ import { Type } from 'class-transformer';
 export class CreateConversationDto {
   @IsOptional()
   @IsString()
-  @IsMongoId()
-  conversationId?: string;
-
-  @IsOptional()
-  @IsString()
-  title?: string;
+  groupName?: string;
 
   @IsEnum(CHAT_TYPE)
   type: CHAT_TYPE;
@@ -39,7 +34,7 @@ export class CreateConversationDto {
 export class CreateMessageDto {
   @IsString()
   @IsMongoId()
-  conversationId?: string;
+  conversationId: string;
 
   @IsInt()
   sender: number;

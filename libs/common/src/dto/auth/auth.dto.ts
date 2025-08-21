@@ -27,3 +27,10 @@ export class LoginDto {
   @IsNotEmpty()
   password: string;
 }
+
+export class AuthUser {
+  user: {
+    id: number;
+    email: string;
+  };
+}

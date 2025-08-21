@@ -15,8 +15,22 @@ export const PATTERN = {
     UPDATE_REFRESH_TOKEN: { cmd: 'update_refresh_token' },
   },
   CHAT: {
+    CHECK_IS_MEMBER: { cmd: 'check_is_member' },
     GET_CONVERSATION: { cmd: 'get_conversation' },
+    UPDATE_LAST_MESSAGE: { cmd: 'update_last_message' },
     CREATE_CONVERSATION: { cmd: 'create_conversation' },
     GET_ALL_CONVERSATIONS: { cmd: 'get_all_conversations' },
+    CHECK_CONVERSATION_EXISTS: { cmd: 'check_conversation_exists' },
+
+    EDIT_MESSAGE: { cmd: 'edit_message' },
+    DELETE_MESSAGE: { cmd: 'delete_message' },
+    CREATE_MESSAGE: { cmd: 'create_message' },
+    GET_ALL_MESSAGES: { cmd: 'get_all_messages' },
+
+    GET_MEMBERS: { cmd: 'get_members' },
+    ADD_MEMBERS: { cmd: 'add_members' },
+    REMOVE_MEMBER: { cmd: 'remove_member' },
+    GET_MEMBER_ROLE: { cmd: 'get_member_role' },
+    CHANGE_MEMBER_ROLE: { cmd: 'change_member_role' },
   },
 };

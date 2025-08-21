@@ -21,3 +21,4 @@ export class Member extends Document {
 }
 
 export const MemberSchema = SchemaFactory.createForClass(Member);
+MemberSchema.index({ userId: 1, conversationId: 1 }, { unique: true });

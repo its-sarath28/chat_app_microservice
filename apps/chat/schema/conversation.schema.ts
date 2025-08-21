@@ -10,7 +10,10 @@ export class Conversation {
   type: CHAT_TYPE;
 
   @Prop({ type: String, default: null })
-  title: string;
+  groupName?: string;
+
+  @Prop({ type: String, default: null })
+  groupImageUrl?: string;
 
   @Prop({ type: Date })
   lastMessageAt: Date;
