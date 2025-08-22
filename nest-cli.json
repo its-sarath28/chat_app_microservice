@@ -46,6 +46,24 @@
         "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     },
+    "notification": {
+      "type": "application",
+      "root": "apps/notification",
+      "entryFile": "main",
+      "sourceRoot": "apps/notification/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/notification/tsconfig.app.json"
+      }
+    },
+    "socket-gateway": {
+      "type": "application",
+      "root": "apps/socket-gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/socket-gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/socket-gateway/tsconfig.app.json"
+      }
+    },
     "user": {
       "type": "application",
       "root": "apps/user",

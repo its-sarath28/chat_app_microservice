@@ -19,7 +19,7 @@ import {
   CreateConversationDto,
   CreateMessageDto,
 } from '@app/common/dto/chat/chat.dto';
-import { MEMBER_ROLE } from '../enum/chat.enum';
+import { CHAT_TYPE, MEMBER_ROLE } from '../enum/chat.enum';
 import { USER_CLIENT } from '@app/common/token/token';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { PATTERN } from '@app/common/pattern/pattern';
@@ -40,7 +40,7 @@ export class ChatService {
   // ========================
   async createConversation(data: CreateConversationDto) {
     const newConver: ConversationDocument = await this.converModel.create({
-      type: data.type,
+      type: data.type as CHAT_TYPE,
       createdBy: data.createdBy,
       createdOn: new Date(),
       groupName: data.groupName ?? null,
@@ -50,7 +50,7 @@ export class ChatService {
       conversationId: newConver._id,
       userId: member,
       role:
-        data.type === 'Group'
+        data.type === CHAT_TYPE.GROUP
           ? member === data.createdBy
             ? MEMBER_ROLE.ADMIN
             : MEMBER_ROLE.MEMBER

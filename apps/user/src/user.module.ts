@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 import { UserController } from './user.controller';
 
@@ -10,12 +11,39 @@ import { Block } from '../entity/block.entity';
 import { RefreshToken } from '../entity/refreshToken.entity';
 import { Friendship } from '../entity/friendship.entity';
 
+import {
+  CHAT_CLIENT,
+  CHAT_QUEUE,
+  NOTIFICATION_CLIENT,
+  NOTIFICATION_QUEUE,
+} from '@app/common/token/token';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
     }),
+    ClientsModule.register([
+      {
+        name: CHAT_CLIENT,
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.RABBITMQ_URL!],
+          queue: CHAT_QUEUE,
+          queueOptions: { durable: true },
+        },
+      },
+      {
+        name: NOTIFICATION_CLIENT,
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.RABBITMQ_URL!],
+          queue: NOTIFICATION_QUEUE,
+          queueOptions: { durable: true },
+        },
+      },
+    ]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,

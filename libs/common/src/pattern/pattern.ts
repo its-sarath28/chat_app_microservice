@@ -41,4 +41,9 @@ export const PATTERN = {
     GET_MEMBER_ROLE: { cmd: 'get_member_role' },
     CHANGE_MEMBER_ROLE: { cmd: 'change_member_role' },
   },
+  NOTIFICATION: {
+    CREATE_NEW_NOTIFICATION: { cmd: 'create_new_notification' },
+    ALL_NOTIFICATIONS: { cmd: 'all_notifications' },
+    NOTIFY_USER: { cmd: 'notify_user' },
+  },
 };

@@ -78,11 +78,11 @@ export class UserService {
       throw new BadRequestException('User ID and Friend ID cannot be the same');
     }
 
-    const areFriends = await firstValueFrom(
-      this.userClient.send(PATTERN.USER.CHECK_IS_FRIENDS, { userId, friendId }),
-    );
+    // const areFriends = await firstValueFrom(
+    //   this.userClient.send(PATTERN.USER.CHECK_IS_FRIENDS, { userId, friendId }),
+    // );
 
-    if (areFriends) return { success: true, message: 'Already friends' };
+    // if (areFriends) return { success: true, message: 'Already friends' };
 
     return await firstValueFrom(
       this.userClient.send(PATTERN.USER.ACCEPT_REQUEST, { userId, friendId }),

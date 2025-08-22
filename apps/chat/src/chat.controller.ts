@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { PATTERN } from '@app/common/pattern/pattern';
 import {
   CreateConversationDto,
@@ -25,7 +25,7 @@ export class ChatController {
     return this.chatService.getConversation(data.conversationId);
   }
 
-  @MessagePattern(PATTERN.CHAT.CREATE_CONVERSATION)
+  @EventPattern(PATTERN.CHAT.CREATE_CONVERSATION)
   createConversation(@Payload() data: CreateConversationDto) {
     return this.chatService.createConversation(data);
   }

@@ -1,25 +1,28 @@
-import {
-  HttpCode,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 
 import { User } from '../entity/user.entity';
+import { Block } from '../entity/block.entity';
+import { Friendship } from '../entity/friendship.entity';
 import { RefreshToken } from '../entity/refreshToken.entity';
 
-import { RegisterDto } from '@app/common/dto/auth/auth.dto';
 import {
   RefreshTokenDto,
   UpdateProfileDto,
 } from '@app/common/dto/user/user.dto';
-import { Block } from '../entity/block.entity';
-import { Friendship } from '../entity/friendship.entity';
+import { RegisterDto } from '@app/common/dto/auth/auth.dto';
+
 import { FRIENDSHIP_STATUS } from '../enum/user.enum';
-import { RpcException } from '@nestjs/microservices';
+
+import { PATTERN } from '@app/common/pattern/pattern';
+import { SOCKET_EVENT } from '@app/common/pattern/event';
+import { CHAT_CLIENT, NOTIFICATION_CLIENT } from '@app/common/token/token';
+import { NOTIFICATION_TITLE } from 'apps/notification/enum/notification.enum';
+import { CHAT_TYPE } from 'apps/chat/enum/chat.enum';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserService {
@@ -30,6 +33,8 @@ export class UserService {
     private friendshipRepo: Repository<Friendship>,
     @InjectRepository(RefreshToken)
     private refreshTokenRepo: Repository<RefreshToken>,
+    @Inject(CHAT_CLIENT) private chatClient: ClientProxy,
+    @Inject(NOTIFICATION_CLIENT) private notificationClient: ClientProxy,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -198,6 +203,13 @@ export class UserService {
 
     await this.friendshipRepo.save(friendship);
 
+    this.notificationClient.emit(PATTERN.NOTIFICATION.CREATE_NEW_NOTIFICATION, {
+      userId: friendId,
+      title: NOTIFICATION_TITLE.NEW_REQUEST,
+      description: `New friendship request from ${user.fullName} (${user.username})`,
+      event: SOCKET_EVENT.NOTIFICATION.NEW_REQUEST,
+    });
+
     return {
       success: true,
       message: `Request send successfully to ${friend.username}`,
@@ -223,6 +235,19 @@ export class UserService {
     friendship.status = FRIENDSHIP_STATUS.ACCEPTED;
 
     await this.friendshipRepo.save(friendship);
+
+    this.chatClient.emit(PATTERN.CHAT.CREATE_CONVERSATION, {
+      type: CHAT_TYPE.DIRECT,
+      createdBy: userId,
+      members: [userId, friendId],
+    });
+
+    this.notificationClient.emit(PATTERN.NOTIFICATION.CREATE_NEW_NOTIFICATION, {
+      userId: friendId,
+      title: NOTIFICATION_TITLE.REQUEST_ACCEPTED,
+      description: `${friendship.friend.fullName} (${friendship.friend.username}) accepted your request`,
+      event: SOCKET_EVENT.NOTIFICATION.ACCEPT_REQUEST,
+    });
 
     return {
       success: true,
