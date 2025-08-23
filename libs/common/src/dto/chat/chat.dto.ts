@@ -39,9 +39,6 @@ export class CreateMessageDto {
   @IsInt()
   sender: number;
 
-  @IsInt()
-  receiver: number;
-
   @IsEnum(CHAT_TYPE)
   type: MESSAGE_TYPE;
 

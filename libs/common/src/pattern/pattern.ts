@@ -34,6 +34,8 @@ export const PATTERN = {
     DELETE_MESSAGE: { cmd: 'delete_message' },
     CREATE_MESSAGE: { cmd: 'create_message' },
     GET_ALL_MESSAGES: { cmd: 'get_all_messages' },
+    GET_MESSAGE: { cmd: 'get_message' },
+    NEW_MESSAGE: { cmd: 'new_message' },
 
     GET_MEMBERS: { cmd: 'get_members' },
     ADD_MEMBERS: { cmd: 'add_members' },
@@ -43,7 +45,6 @@ export const PATTERN = {
   },
   NOTIFICATION: {
     CREATE_NEW_NOTIFICATION: { cmd: 'create_new_notification' },
-    ALL_NOTIFICATIONS: { cmd: 'all_notifications' },
     NOTIFY_USER: { cmd: 'notify_user' },
   },
 };

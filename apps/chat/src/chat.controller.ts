@@ -43,14 +43,19 @@ export class ChatController {
     return this.chatService.getAllMessages(data.conversationId);
   }
 
+  @MessagePattern(PATTERN.CHAT.GET_MESSAGE)
+  getMessages(@Payload() data: { messageId: string }) {
+    return this.chatService.getMessage(data.messageId);
+  }
+
   @MessagePattern(PATTERN.CHAT.EDIT_MESSAGE)
   editMessage(@Payload() data: any) {
     return this.chatService.editMessage(data.messageId, data.message);
   }
 
   @MessagePattern(PATTERN.CHAT.DELETE_MESSAGE)
-  deleteMessage(@Payload() data: any) {
-    return this.chatService.deleteMessage(data.messageId);
+  deleteMessage(@Payload() data: { messageIds: string[]; userId: number }) {
+    return this.chatService.deleteMessage(data.messageIds, data.userId);
   }
 
   // ==========================
@@ -67,8 +72,8 @@ export class ChatController {
   }
 
   @MessagePattern(PATTERN.CHAT.REMOVE_MEMBER)
-  removeMember(@Payload() data: { conversationId: string; userId: string }) {
-    return this.chatService.removeMember(data.conversationId, data.userId);
+  removeMember(@Payload() data: { conversationId: string; memberId: string }) {
+    return this.chatService.removeMember(data.conversationId, data.memberId);
   }
 
   @MessagePattern(PATTERN.CHAT.GET_MEMBER_ROLE)

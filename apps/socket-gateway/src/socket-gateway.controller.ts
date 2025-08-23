@@ -1,8 +1,8 @@
 import { Controller } from '@nestjs/common';
 import { SocketGatewayService } from './socket-gateway.service';
 import { EventPattern, Payload } from '@nestjs/microservices';
-import { SOCKET_EVENT } from '@app/common/pattern/event';
 import { PATTERN } from '@app/common/pattern/pattern';
+import { MESSAGE_TYPE } from 'apps/chat/enum/chat.enum';
 
 @Controller()
 export class SocketGatewayController {
@@ -13,5 +13,56 @@ export class SocketGatewayController {
     @Payload() data: { userId: string; event: string; payload: any },
   ) {
     this.wsService.sendToUser(data.userId, data.event, data.payload);
+  }
+
+  @EventPattern(PATTERN.CHAT.NEW_MESSAGE)
+  handleNewMessage(
+    @Payload()
+    data: {
+      conversationId: string;
+      event: string;
+      payload: {
+        sender: number;
+        messageType: MESSAGE_TYPE;
+        mediaUrl?: string;
+        text?: string;
+      };
+    },
+  ) {
+    this.wsService.sendToRoom(data.conversationId, data.event, data.payload);
+  }
+
+  @EventPattern(PATTERN.CHAT.EDIT_MESSAGE)
+  handleEditMessage(
+    @Payload()
+    data: {
+      conversationId: string;
+      event: string;
+      payload: {
+        sender: number;
+        messageType: MESSAGE_TYPE;
+        mediaUrl?: string;
+        text?: string;
+      };
+    },
+  ) {
+    this.wsService.sendToRoom(data.conversationId, data.event, data.payload);
+  }
+
+  @EventPattern(PATTERN.CHAT.DELETE_MESSAGE)
+  handleDeleteMessage(
+    @Payload()
+    data: {
+      conversationId: string;
+      event: string;
+      payload: {
+        sender: number;
+        messageType: MESSAGE_TYPE;
+        mediaUrl?: string;
+        text?: string;
+      };
+    },
+  ) {
+    this.wsService.sendToRoom(data.conversationId, data.event, data.payload);
   }
 }

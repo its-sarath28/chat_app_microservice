@@ -8,7 +8,12 @@ import { ConversationSchema } from '../schema/conversation.schema';
 import { MemberSchema } from '../schema/member.schema';
 import { MessageSchema } from '../schema/message.schema';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { USER_CLIENT, USER_QUEUE } from '@app/common/token/token';
+import {
+  SOCKET_CLIENT,
+  SOCKET_QUEUE,
+  USER_CLIENT,
+  USER_QUEUE,
+} from '@app/common/token/token';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -30,6 +35,14 @@ import { ConfigModule } from '@nestjs/config';
         options: {
           urls: [process.env.RABBITMQ_URL!],
           queue: USER_QUEUE,
+        },
+      },
+      {
+        name: SOCKET_CLIENT,
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.RABBITMQ_URL!],
+          queue: SOCKET_QUEUE,
         },
       },
     ]),

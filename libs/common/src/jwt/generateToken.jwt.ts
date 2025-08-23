@@ -9,7 +9,7 @@ export class JwtToken {
     const payload = { id, email };
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: '2h',
+      expiresIn: '7d',
     });
 
     return accessToken;

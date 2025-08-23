@@ -21,10 +21,6 @@ services:
     image: mongo:6
     container_name: mongo_db
     restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: sarath
-      MONGO_INITDB_ROOT_PASSWORD: admin123
-      MONGO_INITDB_DATABASE: chat_db
     ports:
       - '27017:27017'
     volumes:

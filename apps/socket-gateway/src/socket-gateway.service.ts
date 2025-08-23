@@ -1,15 +1,22 @@
 import { Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { AuthenticatedSocket } from '@app/common/interface/socket/socket.interface';
+import { CHAT_CLIENT } from '@app/common/token/token';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+import { PATTERN } from '@app/common/pattern/pattern';
 
 @Injectable()
 export class SocketGatewayService {
   private connectedClients: Map<string, AuthenticatedSocket> = new Map();
   private server: Server;
 
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    @Inject(CHAT_CLIENT) private chatClient: ClientProxy,
+    private readonly jwtService: JwtService,
+  ) {}
 
   setServer(server: Server) {
     this.server = server;
@@ -102,22 +109,36 @@ export class SocketGatewayService {
     console.log(`📢 Broadcasted "${event}" to all except user ${userId}`);
   }
 
-  async joinRoom(client: AuthenticatedSocket, roomId: string) {
-    client.join(roomId);
-    console.log(`👥 User ${client.user?.id} joined room ${roomId}`);
+  async joinRoom(client: AuthenticatedSocket, conversationId: string) {
+    if (!client.user) {
+      console.warn('⚠️ client.user or client.user.id is undefined');
+      return;
+    }
+
+    const isMember = await firstValueFrom(
+      this.chatClient.send(PATTERN.CHAT.CHECK_IS_MEMBER, {
+        conversationId,
+        memberId: Number(client.user.id),
+      }),
+    );
+
+    if (!isMember) return;
+
+    client.join(conversationId);
+    console.log(`👥 User ${client.user?.id} joined room ${conversationId}`);
   }
 
-  async leaveRoom(client: AuthenticatedSocket, roomId: string) {
-    client.leave(roomId);
-    console.log(`🚪 User ${client.user?.id} left room ${roomId}`);
+  async leaveRoom(client: AuthenticatedSocket, conversationId: string) {
+    client.leave(conversationId);
+    console.log(`🚪 User ${client.user?.id} left room ${conversationId}`);
   }
 
-  sendToRoom(roomId: string, event: string, payload: any) {
+  sendToRoom(conversationId: string, event: string, payload: any) {
     if (!this.server) {
       console.error('❌ Server not attached to SocketGatewayService');
       return;
     }
-    this.server.to(roomId).emit(event, payload);
-    console.log(`📢 Sent "${event}" to room ${roomId}`);
+    this.server.to(conversationId).emit(event, payload);
+    console.log(`📢 Sent "${event}" to room ${conversationId}`);
   }
 }

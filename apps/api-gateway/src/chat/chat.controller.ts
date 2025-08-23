@@ -7,12 +7,22 @@ import {
   UseGuards,
   Query,
   Req,
+  Param,
+  Delete,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import { ChatService } from './chat.service';
 
 import { AuthUser } from '@app/common/dto/auth/auth.dto';
+import {
+  AddMemberDto,
+  ChangeMemberRoleDto,
+  DeleteMessageDto,
+  EditMessageDto,
+  RemoveMemberDto,
+  SendMessageDto,
+} from './dto/chat-api.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -41,8 +51,24 @@ export class ChatController {
   // =========================
   @Post('message/send')
   @UseGuards(AuthGuard())
-  sendMessage(@Body() data: any, @Req() req: AuthUser) {
+  sendMessage(@Body() data: SendMessageDto, @Req() req: AuthUser) {
     return this.chatService.sendMessage(data, +req.user.id);
+  }
+
+  @Patch('message/update/:messageId')
+  @UseGuards(AuthGuard())
+  editMessage(
+    @Param('messageId') messageId: string,
+    @Body() data: EditMessageDto,
+    @Req() req: AuthUser,
+  ) {
+    return this.chatService.editMessage(messageId, data, +req.user.id);
+  }
+
+  @Delete('message/update')
+  @UseGuards(AuthGuard())
+  deleteMessages(@Body() data: DeleteMessageDto, @Req() req: AuthUser) {
+    return this.chatService.deleteMessages(data, req.user.id);
   }
 
   // ==========================
@@ -59,7 +85,7 @@ export class ChatController {
 
   @Post('member/add')
   @UseGuards(AuthGuard())
-  addMembers(@Body() data: any, @Req() req: AuthUser) {
+  addMembers(@Body() data: AddMemberDto, @Req() req: AuthUser) {
     return this.chatService.addMembers(
       data.conversationId,
       data.membersToAdd,
@@ -69,17 +95,17 @@ export class ChatController {
 
   @Post('member/remove')
   @UseGuards(AuthGuard())
-  removeMembers(@Body() data: any, @Req() req: AuthUser) {
+  removeMembers(@Body() data: RemoveMemberDto, @Req() req: AuthUser) {
     return this.chatService.removeMember(
       data.conversationId,
-      data.membersToRemove,
+      data.memberToRemove,
       req.user.id,
     );
   }
 
   @Patch('member/change-role')
   @UseGuards(AuthGuard())
-  changeMemberRole(@Body() data: any, @Req() req: AuthUser) {
+  changeMemberRole(@Body() data: ChangeMemberRoleDto, @Req() req: AuthUser) {
     return this.chatService.changeMemberRole(data, req.user.id);
   }
 }

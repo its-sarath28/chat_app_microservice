@@ -1,4 +1,4 @@
-import mongoose, { Model } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import {
   BadRequestException,
   HttpStatus,
@@ -20,11 +20,12 @@ import {
   CreateMessageDto,
 } from '@app/common/dto/chat/chat.dto';
 import { CHAT_TYPE, MEMBER_ROLE } from '../enum/chat.enum';
-import { USER_CLIENT } from '@app/common/token/token';
+import { SOCKET_CLIENT, USER_CLIENT } from '@app/common/token/token';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { PATTERN } from '@app/common/pattern/pattern';
 import { User } from 'apps/user/entity/user.entity';
 import { firstValueFrom } from 'rxjs';
+import { SOCKET_EVENT } from '@app/common/pattern/event';
 
 @Injectable()
 export class ChatService {
@@ -33,6 +34,7 @@ export class ChatService {
     @InjectModel(Message.name) private messageModel: Model<Message>,
     @InjectModel(Conversation.name) private converModel: Model<Conversation>,
     @Inject(USER_CLIENT) private userClient: ClientProxy,
+    @Inject(SOCKET_CLIENT) private wsClient: ClientProxy,
   ) {}
 
   // ========================
@@ -137,10 +139,20 @@ export class ChatService {
   async createMessage(data: CreateMessageDto) {
     // TODO: Upload media and get url
 
-    const newMessage = await this.messageModel.create(data);
+    const newMessage: Message = await this.messageModel.create(data);
 
-    // TODO: Send message in real-time
     // TODO: Send message notification
+
+    this.wsClient.emit(PATTERN.CHAT.NEW_MESSAGE, {
+      conversationId: newMessage.conversationId,
+      event: SOCKET_EVENT.CHAT.NEW_MESSAGE,
+      payload: {
+        sender: newMessage.sender,
+        messageType: newMessage.type,
+        mediaUrl: newMessage.mediaUrl,
+        text: newMessage.text,
+      },
+    });
 
     await this.updateLastMessage(data.conversationId, data.text || ' ');
 
@@ -155,6 +167,19 @@ export class ChatService {
       .sort({ createdAt: -1 });
 
     return messages;
+  }
+
+  async getMessage(messageId: string) {
+    const message: Message | null = await this.messageModel.findById(messageId);
+
+    if (!message) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Message not found',
+      });
+    }
+
+    return message;
   }
 
   async editMessage(messageId: string, message: string) {
@@ -172,14 +197,45 @@ export class ChatService {
       });
     }
 
+    this.wsClient.emit(PATTERN.CHAT.NEW_MESSAGE, {
+      conversationId: updatedMessage.conversationId,
+      event: SOCKET_EVENT.CHAT.UPDATE_MESSAGE,
+      payload: {
+        sender: updatedMessage.sender,
+        messageType: updatedMessage.type,
+        mediaUrl: updatedMessage.mediaUrl,
+        text: updatedMessage.text,
+      },
+    });
+
     return { success: true, data: updatedMessage };
   }
 
-  async deleteMessage(messageIds: string[]) {
+  async deleteMessage(messageIds: string[], userId: number) {
+    const messages: Message[] = await this.messageModel.find({
+      _id: { $in: messageIds },
+      sender: userId,
+    });
+
+    if (messages.length !== messageIds.length) {
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Some messages are not found or not send by you',
+      });
+    }
+
     const result = await this.messageModel.updateMany(
       { _id: { $in: messageIds } },
       { $set: { isDeleted: true } },
     );
+
+    this.wsClient.emit(PATTERN.CHAT.DELETE_MESSAGE, {
+      conversationId: messages[0].conversationId,
+      event: SOCKET_EVENT.CHAT.DELETE_MESSAGE,
+      payload: {
+        messageIds,
+      },
+    });
 
     return result;
   }
@@ -300,7 +356,7 @@ export class ChatService {
 
   async checkIsMember(conversationId: string, memberId: number) {
     const member: Member | null = await this.memberModel.findOne({
-      conversationId,
+      conversationId: new Types.ObjectId(conversationId),
       userId: memberId,
     });
 
