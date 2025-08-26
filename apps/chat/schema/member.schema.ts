@@ -2,6 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { MEMBER_ROLE } from '../enum/chat.enum';
 
+export type MemberDocument = Member & Document;
+
 @Schema({ timestamps: { createdAt: 'joinedOn', updatedAt: false } })
 export class Member extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Conversation', required: true })

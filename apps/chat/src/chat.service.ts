@@ -1,11 +1,5 @@
 import mongoose, { Model, Types } from 'mongoose';
-import {
-  BadRequestException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { Message } from '../schema/message.schema';
@@ -13,7 +7,7 @@ import {
   Conversation,
   ConversationDocument,
 } from '../schema/conversation.schema';
-import { Member } from '../schema/member.schema';
+import { Member, MemberDocument } from '../schema/member.schema';
 
 import {
   CreateConversationDto,
@@ -90,13 +84,47 @@ export class ChatService {
       (id) => new mongoose.Types.ObjectId(id),
     );
 
-    const conversations = await this.converModel
+    const conversations: ConversationDocument[] = await this.converModel
       .find({
         _id: { $in: objectIds },
       })
       .sort({ lastMessageAt: -1 });
 
-    return conversations;
+    const formatted = await Promise.all(
+      conversations.map(async (conv: ConversationDocument) => {
+        if (conv.type === CHAT_TYPE.DIRECT) {
+          const members = await this.memberModel.find({
+            conversationId: new mongoose.Types.ObjectId(conv._id as string),
+          });
+
+          const otherMember: MemberDocument | undefined = members.find(
+            (m) => m.userId !== userId,
+          );
+
+          if (!otherMember) return conv;
+
+          const user: User | null = await firstValueFrom(
+            this.userClient.send(PATTERN.USER.FIND_BY_ID, {
+              userId: otherMember.userId,
+            }),
+          );
+
+          return {
+            ...conv.toObject(),
+            friendName: user?.fullName ?? 'Unknown',
+            imageUrl: user?.imageUrl ?? null,
+          };
+        } else {
+          return {
+            ...conv.toObject(),
+            friendName: null,
+            imageUrl: null,
+          };
+        }
+      }),
+    );
+
+    return formatted;
   }
 
   async updateLastMessage(conversationId: string, message: string) {

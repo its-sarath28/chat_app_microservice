@@ -20,6 +20,11 @@ export class UserController {
     return this.userService.findByEmail(data.email);
   }
 
+  @MessagePattern(PATTERN.USER.FIND_BY_ID)
+  findById(@Payload() data: { userId: number }) {
+    return this.userService.findById(data.userId);
+  }
+
   @MessagePattern(PATTERN.USER.CREATE_USER)
   createUser(@Payload() data: RegisterDto) {
     return this.userService.createUser(data);

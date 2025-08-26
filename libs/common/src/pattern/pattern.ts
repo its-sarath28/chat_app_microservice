@@ -5,6 +5,7 @@ export const PATTERN = {
     REFRESH_TOKEN: { cmd: 'refresh_token' },
   },
   USER: {
+    FIND_BY_ID: { cmd: 'find_by_id' },
     GET_PROFILE: { cmd: 'get_profile' },
     CREATE_USER: { cmd: 'create_user' },
     TOGGLE_BLOCK: { cmd: 'toggle_block' },

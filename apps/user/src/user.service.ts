@@ -46,6 +46,14 @@ export class UserService {
     return user;
   }
 
+  async findById(id: number): Promise<User | null> {
+    const user: User | null = await this.userRepo.findOne({
+      where: { id },
+    });
+
+    return user;
+  }
+
   async searchUsers(query: string) {
     const users: User[] = await this.userRepo.find({
       where: [
