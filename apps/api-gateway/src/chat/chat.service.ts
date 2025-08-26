@@ -50,6 +50,7 @@ export class ChatService {
 
     return this.chatClient.send(PATTERN.CHAT.GET_CONVERSATION, {
       conversationId,
+      userId,
     });
   }
 

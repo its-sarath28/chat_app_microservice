@@ -58,7 +58,7 @@ export class ChatService {
     return newConver;
   }
 
-  async getConversation(id: string) {
+  async getConversation(id: string, userId: number) {
     const conver: Conversation | null = await this.converModel.findById(id);
 
     if (!conver) {
@@ -66,6 +66,27 @@ export class ChatService {
         statusCode: HttpStatus.NOT_FOUND,
         message: 'Conversation not found',
       });
+    }
+
+    if (conver.type === CHAT_TYPE.DIRECT) {
+      const otherMember: MemberDocument | null = await this.memberModel.findOne(
+        {
+          conversationId: id,
+          userId: { $ne: userId },
+        },
+      );
+
+      const user: User | null = await firstValueFrom(
+        this.userClient.send(PATTERN.USER.FIND_BY_ID, {
+          userId: otherMember?.userId,
+        }),
+      );
+
+      return {
+        ...conver,
+        friendName: user?.fullName ?? 'Unknown',
+        imageUrl: user?.imageUrl ?? null,
+      };
     }
 
     return conver;

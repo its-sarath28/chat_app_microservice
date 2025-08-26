@@ -21,8 +21,8 @@ export class ChatController {
   }
 
   @MessagePattern(PATTERN.CHAT.GET_CONVERSATION)
-  getConversation(@Payload() data: { conversationId: string }) {
-    return this.chatService.getConversation(data.conversationId);
+  getConversation(@Payload() data: { conversationId: string; userId: number }) {
+    return this.chatService.getConversation(data.conversationId, data.userId);
   }
 
   @EventPattern(PATTERN.CHAT.CREATE_CONVERSATION)

@@ -24,13 +24,12 @@ export class SocketGatewayService {
 
   async handleConnection(client: AuthenticatedSocket) {
     try {
-      const authHeader = client.handshake.headers.authorization as string;
+      const token = client.handshake.auth.token;
 
-      if (!authHeader?.startsWith(`Bearer `)) {
+      if (!token) {
         throw new UnauthorizedException('Missing or invalid token');
       }
 
-      const token = authHeader.split(' ')[1];
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.JWT_ACCESS_SECRET!,
       });
