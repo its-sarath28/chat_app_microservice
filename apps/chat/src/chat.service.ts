@@ -2,7 +2,7 @@ import mongoose, { Model, Types } from 'mongoose';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { Message } from '../schema/message.schema';
+import { Message, MessageDocument } from '../schema/message.schema';
 import {
   Conversation,
   ConversationDocument,
@@ -59,7 +59,8 @@ export class ChatService {
   }
 
   async getConversation(id: string, userId: number) {
-    const conver: Conversation | null = await this.converModel.findById(id);
+    const conver: ConversationDocument | null =
+      await this.converModel.findById(id);
 
     if (!conver) {
       throw new RpcException({
@@ -83,7 +84,7 @@ export class ChatService {
       );
 
       return {
-        ...conver,
+        ...conver.toObject(),
         friendId: user?.id! as number,
         friendName: user?.fullName ?? 'Unknown',
         imageUrl: user?.imageUrl ?? null,
@@ -189,7 +190,7 @@ export class ChatService {
   async createMessage(data: CreateMessageDto) {
     // TODO: Upload media and get url
 
-    const newMessage: Message = await this.messageModel.create(data);
+    const newMessage: MessageDocument = await this.messageModel.create(data);
 
     // TODO: Send message notification
 
@@ -197,6 +198,8 @@ export class ChatService {
       conversationId: newMessage.conversationId,
       event: SOCKET_EVENT.CHAT.NEW_MESSAGE,
       payload: {
+        conversationId: newMessage.conversationId,
+        messageId: newMessage._id as string,
         sender: newMessage.sender,
         messageType: newMessage.type,
         mediaUrl: newMessage.mediaUrl,
@@ -214,7 +217,7 @@ export class ChatService {
 
     const messages = await this.messageModel
       .find({ conversationId })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: 1 });
 
     return messages;
   }

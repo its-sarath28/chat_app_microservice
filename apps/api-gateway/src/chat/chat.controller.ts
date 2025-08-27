@@ -55,6 +55,18 @@ export class ChatController {
     return this.chatService.sendMessage(data, +req.user.id);
   }
 
+  @Get('message')
+  @UseGuards(AuthGuard())
+  getMessagesOfConversation(
+    @Query('conversationId') conversationId: string,
+    @Req() req: AuthUser,
+  ) {
+    return this.chatService.getMessagesOfConversation(
+      conversationId,
+      +req.user.id,
+    );
+  }
+
   @Patch('message/update/:messageId')
   @UseGuards(AuthGuard())
   editMessage(

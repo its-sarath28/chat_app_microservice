@@ -22,6 +22,8 @@ export class SocketGatewayController {
       conversationId: string;
       event: string;
       payload: {
+        conversationId: string;
+        messageId: string;
         sender: number;
         messageType: MESSAGE_TYPE;
         mediaUrl?: string;
@@ -29,6 +31,7 @@ export class SocketGatewayController {
       };
     },
   ) {
+    console.log(data);
     this.wsService.sendToRoom(data.conversationId, data.event, data.payload);
   }
 

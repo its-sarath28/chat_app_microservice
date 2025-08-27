@@ -55,7 +55,7 @@ export class SocketGatewayService {
         REDIS_PATTERN.ONLINE_USERS,
       );
 
-      client.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
+      // client.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
 
       // (Optional) broadcast to everyone else too
       this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });

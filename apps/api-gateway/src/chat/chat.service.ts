@@ -79,7 +79,7 @@ export class ChatService {
     });
   }
 
-  async getAllMessages(conversationId: string, userId: number) {
+  async getMessagesOfConversation(conversationId: string, userId: number) {
     const isMember: boolean = await firstValueFrom(
       this.chatClient.send(PATTERN.CHAT.CHECK_IS_MEMBER, {
         conversationId: conversationId,
