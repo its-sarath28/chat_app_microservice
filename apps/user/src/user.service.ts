@@ -341,4 +341,8 @@ export class UserService {
       imageUrl: req.user.imageUrl,
     }));
   }
+
+  async updateLastSeen(id: number) {
+    await this.userRepo.update(id, { lastSeen: new Date() });
+  }
 }

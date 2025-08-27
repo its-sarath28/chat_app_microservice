@@ -13,4 +13,11 @@ export const SOCKET_EVENT = {
     UPDATE_MESSAGE: 'update_message',
     DELETE_MESSAGE: 'delete_message',
   },
+  USER: {
+    ONLINE_USERS: 'online_users',
+  },
+};
+
+export const REDIS_PATTERN = {
+  ONLINE_USERS: 'online_users',
 };

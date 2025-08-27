@@ -24,6 +24,13 @@ export class User {
   @Column({ select: false })
   password: string;
 
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
+  lastSeen: Date;
+
   @OneToMany(() => RefreshToken, (token) => token.user, { cascade: true })
   refreshTokens: RefreshToken[];
 

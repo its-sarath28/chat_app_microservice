@@ -15,6 +15,7 @@ export const PATTERN = {
     UPDATE_PROFILE: { cmd: 'update_profile' },
     GET_REFRESH_TOKEN: { cmd: 'get_refresh_token' },
     UPDATE_REFRESH_TOKEN: { cmd: 'update_refresh_token' },
+    UPDATE_LAST_SEEN: { cmd: 'update_last_seen' },
 
     GET_FRIENDS: { cmd: 'get_friends' },
     SEND_REQUEST: { cmd: 'send_request' },

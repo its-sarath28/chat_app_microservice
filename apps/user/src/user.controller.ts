@@ -93,4 +93,9 @@ export class UserController {
   updateRefreshToken(@Payload() data: RefreshTokenDto) {
     return this.userService.updateRefreshToken(data);
   }
+
+  @EventPattern(PATTERN.USER.UPDATE_LAST_SEEN)
+  updateLastSeen(@Payload() data: { userId: number }) {
+    return this.userService.updateLastSeen(data.userId);
+  }
 }

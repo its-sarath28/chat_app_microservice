@@ -71,7 +71,7 @@ export class ChatService {
     if (conver.type === CHAT_TYPE.DIRECT) {
       const otherMember: MemberDocument | null = await this.memberModel.findOne(
         {
-          conversationId: id,
+          conversationId: new mongoose.Types.ObjectId(id),
           userId: { $ne: userId },
         },
       );
@@ -84,6 +84,7 @@ export class ChatService {
 
       return {
         ...conver,
+        friendId: user?.id! as number,
         friendName: user?.fullName ?? 'Unknown',
         imageUrl: user?.imageUrl ?? null,
       };

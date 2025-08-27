@@ -1,12 +1,14 @@
 import { Server } from 'socket.io';
+import { firstValueFrom } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { AuthenticatedSocket } from '@app/common/interface/socket/socket.interface';
-import { CHAT_CLIENT } from '@app/common/token/token';
+import { CHAT_CLIENT, USER_CLIENT } from '@app/common/token/token';
 import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
 import { PATTERN } from '@app/common/pattern/pattern';
+import { RedisProvider } from '../../../libs/redis/src/redis.provider';
+import { REDIS_PATTERN, SOCKET_EVENT } from '@app/common/pattern/event';
 
 @Injectable()
 export class SocketGatewayService {
@@ -15,7 +17,9 @@ export class SocketGatewayService {
 
   constructor(
     @Inject(CHAT_CLIENT) private chatClient: ClientProxy,
+    @Inject(USER_CLIENT) private userClient: ClientProxy,
     private readonly jwtService: JwtService,
+    private readonly redisProvider: RedisProvider,
   ) {}
 
   setServer(server: Server) {
@@ -43,7 +47,18 @@ export class SocketGatewayService {
         email: payload.email,
       };
 
+      await this.redisProvider.sadd(REDIS_PATTERN.ONLINE_USERS, payload.id);
+
       this.connectedClients.set(client.id, client);
+
+      const onlineUsers = await this.redisProvider.smembers(
+        REDIS_PATTERN.ONLINE_USERS,
+      );
+
+      client.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
+
+      // (Optional) broadcast to everyone else too
+      this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
 
       console.log(`✅ ${client.user.email} connected - ${client.id}`);
     } catch (err) {
@@ -53,7 +68,22 @@ export class SocketGatewayService {
   }
 
   async handleDisconnect(client: AuthenticatedSocket) {
+    if (client.user?.id) {
+      this.userClient.emit(PATTERN.USER.UPDATE_LAST_SEEN, {
+        userId: client.user.id,
+      });
+
+      await this.redisProvider.srem(REDIS_PATTERN.ONLINE_USERS, client.user.id);
+
+      const onlineUsers = await this.redisProvider.smembers(
+        REDIS_PATTERN.ONLINE_USERS,
+      );
+
+      this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
+    }
+
     this.connectedClients.delete(client.id);
+
     console.log(`❌ Client disconnected: ${client.id}`);
   }
 
@@ -139,5 +169,12 @@ export class SocketGatewayService {
     }
     this.server.to(conversationId).emit(event, payload);
     console.log(`📢 Sent "${event}" to room ${conversationId}`);
+  }
+
+  async getOnlineUsers(client: AuthenticatedSocket): Promise<string[]> {
+    const onlineUsers = await this.redisProvider.smembers(
+      REDIS_PATTERN.ONLINE_USERS,
+    );
+    return onlineUsers;
   }
 }

@@ -6,7 +6,13 @@ import { SocketGateway } from './socket-gateway.gateway';
 import { SocketGatewayService } from './socket-gateway.service';
 import { SocketGatewayController } from './socket-gateway.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { CHAT_CLIENT, CHAT_QUEUE } from '@app/common/token/token';
+import {
+  CHAT_CLIENT,
+  CHAT_QUEUE,
+  USER_CLIENT,
+  USER_QUEUE,
+} from '@app/common/token/token';
+import { RedisModule } from '../../../libs/redis/src/redis.module';
 
 @Module({
   imports: [
@@ -24,7 +30,16 @@ import { CHAT_CLIENT, CHAT_QUEUE } from '@app/common/token/token';
           queue: CHAT_QUEUE,
         },
       },
+      {
+        name: USER_CLIENT,
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.RABBITMQ_URL!],
+          queue: USER_QUEUE,
+        },
+      },
     ]),
+    RedisModule,
   ],
   controllers: [SocketGatewayController],
   providers: [SocketGateway, SocketGatewayService],
