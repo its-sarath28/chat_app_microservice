@@ -1,12 +1,17 @@
 import { Controller } from '@nestjs/common';
 import { SocketGatewayService } from './socket-gateway.service';
-import { EventPattern, Payload } from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { PATTERN } from '@app/common/pattern/pattern';
 import { MESSAGE_TYPE } from 'apps/chat/enum/chat.enum';
 
 @Controller()
 export class SocketGatewayController {
   constructor(private readonly wsService: SocketGatewayService) {}
+
+  @MessagePattern(PATTERN.USER.GET_ONLINE_USERS)
+  handleGetOnlineUsers() {
+    return this.wsService.getOnlineUsers();
+  }
 
   @EventPattern(PATTERN.NOTIFICATION.NOTIFY_USER)
   handleNotification(
@@ -31,7 +36,6 @@ export class SocketGatewayController {
       };
     },
   ) {
-    console.log(data);
     this.wsService.sendToRoom(data.conversationId, data.event, data.payload);
   }
 

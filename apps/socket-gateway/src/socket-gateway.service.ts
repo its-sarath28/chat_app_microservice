@@ -56,9 +56,11 @@ export class SocketGatewayService {
       );
 
       // client.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
+      client.emit('online_users', { users: onlineUsers });
 
       // (Optional) broadcast to everyone else too
-      this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
+      // this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
+      this.server.emit('online_users', { users: onlineUsers });
 
       console.log(`✅ ${client.user.email} connected - ${client.id}`);
     } catch (err) {
@@ -79,7 +81,8 @@ export class SocketGatewayService {
         REDIS_PATTERN.ONLINE_USERS,
       );
 
-      this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
+      // this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
+      this.server.emit('online_users', { users: onlineUsers });
     }
 
     this.connectedClients.delete(client.id);
@@ -171,7 +174,7 @@ export class SocketGatewayService {
     console.log(`📢 Sent "${event}" to room ${conversationId}`);
   }
 
-  async getOnlineUsers(client: AuthenticatedSocket): Promise<string[]> {
+  async getOnlineUsers(): Promise<string[]> {
     const onlineUsers = await this.redisProvider.smembers(
       REDIS_PATTERN.ONLINE_USERS,
     );

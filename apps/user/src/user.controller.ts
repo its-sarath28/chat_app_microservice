@@ -85,6 +85,11 @@ export class UserController {
     return this.userService.searchUsers(data.query);
   }
 
+  @MessagePattern(PATTERN.USER.GET_ONLINE_USERS)
+  getOnlineUsers() {
+    return this.userService.getOnlineUsers();
+  }
+
   // ====================================
   // Event Patterns
   // ====================================

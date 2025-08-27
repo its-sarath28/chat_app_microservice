@@ -51,6 +51,12 @@ export class UserController {
     return this.userService.getIncomingRequests(req.user.id);
   }
 
+  @Get('friend/online')
+  @UseGuards(AuthGuard())
+  getOnlineFriends() {
+    return this.userService.getOnlineFriends();
+  }
+
   @Post('friend/send-request')
   @UseGuards(AuthGuard())
   sendRequest(@Body() data: { friendId: number }, @Req() req: AuthUser) {

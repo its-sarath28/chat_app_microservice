@@ -16,6 +16,8 @@ import {
   CHAT_QUEUE,
   NOTIFICATION_CLIENT,
   NOTIFICATION_QUEUE,
+  SOCKET_CLIENT,
+  SOCKET_QUEUE,
 } from '@app/common/token/token';
 
 @Module({
@@ -40,6 +42,15 @@ import {
         options: {
           urls: [process.env.RABBITMQ_URL!],
           queue: NOTIFICATION_QUEUE,
+          queueOptions: { durable: true },
+        },
+      },
+      {
+        name: SOCKET_CLIENT,
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.RABBITMQ_URL!],
+          queue: SOCKET_QUEUE,
           queueOptions: { durable: true },
         },
       },

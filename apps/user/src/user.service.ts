@@ -19,7 +19,11 @@ import { FRIENDSHIP_STATUS } from '../enum/user.enum';
 
 import { PATTERN } from '@app/common/pattern/pattern';
 import { SOCKET_EVENT } from '@app/common/pattern/event';
-import { CHAT_CLIENT, NOTIFICATION_CLIENT } from '@app/common/token/token';
+import {
+  CHAT_CLIENT,
+  NOTIFICATION_CLIENT,
+  SOCKET_CLIENT,
+} from '@app/common/token/token';
 import { NOTIFICATION_TITLE } from 'apps/notification/enum/notification.enum';
 import { CHAT_TYPE } from 'apps/chat/enum/chat.enum';
 import { firstValueFrom } from 'rxjs';
@@ -35,6 +39,7 @@ export class UserService {
     private refreshTokenRepo: Repository<RefreshToken>,
     @Inject(CHAT_CLIENT) private chatClient: ClientProxy,
     @Inject(NOTIFICATION_CLIENT) private notificationClient: ClientProxy,
+    @Inject(SOCKET_CLIENT) private wsClient: ClientProxy,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -344,5 +349,9 @@ export class UserService {
 
   async updateLastSeen(id: number) {
     await this.userRepo.update(id, { lastSeen: new Date() });
+  }
+
+  async getOnlineUsers() {
+    return this.wsClient.send(PATTERN.USER.GET_ONLINE_USERS, {});
   }
 }

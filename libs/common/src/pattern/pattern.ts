@@ -22,6 +22,7 @@ export const PATTERN = {
     ACCEPT_REQUEST: { cmd: 'accept_request' },
     REJECT_REQUEST: { cmd: 'reject_request' },
     CHECK_IS_FRIENDS: { cmd: 'check_is_friends' },
+    GET_ONLINE_USERS: { cmd: 'get_online_users' },
     GET_INCOMING_REQUESTS: { cmd: 'get_incoming_requests' },
   },
   CHAT: {

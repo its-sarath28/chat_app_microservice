@@ -57,6 +57,12 @@ export class UserService {
     );
   }
 
+  async getOnlineFriends() {
+    return await firstValueFrom(
+      this.userClient.send(PATTERN.USER.GET_ONLINE_USERS, {}),
+    );
+  }
+
   async sendRequest(userId: number, friendId: number) {
     if (userId === friendId) {
       throw new BadRequestException('User ID and Friend ID cannot be the same');
