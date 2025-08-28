@@ -35,8 +35,8 @@ export class UserController {
 
   @Get('search')
   @UseGuards(AuthGuard())
-  searchUsers(@Query('query') query: string) {
-    return this.userService.searchUsers(query);
+  searchUsers(@Query('query') query: string, @Req() req: AuthUser) {
+    return this.userService.searchUsers(req.user.id, query);
   }
 
   @Get('friend/all')
@@ -55,6 +55,18 @@ export class UserController {
   @UseGuards(AuthGuard())
   getOnlineFriends() {
     return this.userService.getOnlineFriends();
+  }
+
+  @Get('friend/suggested')
+  @UseGuards(AuthGuard())
+  getSuggestedFriends(@Req() req: AuthUser) {
+    return this.userService.getSuggestedFriends(req.user.id);
+  }
+
+  @Get('friend/profile')
+  @UseGuards(AuthGuard())
+  getFriendProfile(@Query('friendId') friendId: string, @Req() req: AuthUser) {
+    return this.userService.getFriendProfile(req.user.id, +friendId);
   }
 
   @Post('friend/send-request')

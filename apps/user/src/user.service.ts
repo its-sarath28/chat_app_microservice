@@ -1,6 +1,14 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
+import {
+  And,
+  ILike,
+  IsNull,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 
@@ -15,7 +23,10 @@ import {
 } from '@app/common/dto/user/user.dto';
 import { RegisterDto } from '@app/common/dto/auth/auth.dto';
 
-import { FRIENDSHIP_STATUS } from '../enum/user.enum';
+import {
+  FRIENDSHIP_REQUEST_STATUS,
+  FRIENDSHIP_STATUS,
+} from '../enum/user.enum';
 
 import { PATTERN } from '@app/common/pattern/pattern';
 import { SOCKET_EVENT } from '@app/common/pattern/event';
@@ -26,7 +37,6 @@ import {
 } from '@app/common/token/token';
 import { NOTIFICATION_TITLE } from 'apps/notification/enum/notification.enum';
 import { CHAT_TYPE } from 'apps/chat/enum/chat.enum';
-import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserService {
@@ -59,16 +69,20 @@ export class UserService {
     return user;
   }
 
-  async searchUsers(query: string) {
-    const users: User[] = await this.userRepo.find({
+  async searchUsers(currentUserId: number, query: string) {
+    return this.userRepo.find({
       where: [
-        { username: ILike(`%${query}%`) },
-        { fullName: ILike(`%${query}%`) },
+        {
+          username: ILike(`%${query}%`),
+          id: Not(currentUserId),
+        },
+        {
+          fullName: ILike(`%${query}%`),
+          id: Not(currentUserId),
+        },
       ],
       select: ['id', 'fullName', 'username', 'imageUrl'],
     });
-
-    return users;
   }
 
   async createUser(data: RegisterDto): Promise<User> {
@@ -353,5 +367,83 @@ export class UserService {
 
   async getOnlineUsers() {
     return this.wsClient.send(PATTERN.USER.GET_ONLINE_USERS, {});
+  }
+
+  async getSuggestedFriends(currentUserId: number) {
+    const qb = this.userRepo
+      .createQueryBuilder('user')
+      // 🚫 exclude existing friendships
+      .leftJoin(
+        'friendship',
+        'f',
+        '(f.userId = :currentUserId AND f.friendId = user.id) OR (f.friendId = :currentUserId AND f.userId = user.id)',
+        { currentUserId },
+      )
+      .where('user.id != :currentUserId', { currentUserId })
+      // 🚫 exclude blocked users
+      .andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('1')
+          .from('block', 'b')
+          .where(
+            '(b.blockerId = :currentUserId AND b.blockedId = user.id) OR ' +
+              '(b.blockedId = :currentUserId AND b.blockerId = user.id)',
+          )
+          .getQuery();
+        return `NOT EXISTS ${subQuery}`;
+      })
+      // ✅ exclude friends (any accepted or pending friendship)
+      .andWhere('f.id IS NULL')
+      .select([
+        `user.id AS "id"`,
+        `user.fullName AS "fullName"`,
+        `user.username AS "username"`,
+        `user.imageUrl AS "imageUrl"`,
+        `user.lastSeen AS "lastSeen"`,
+      ]);
+
+    return qb.getRawMany();
+  }
+
+  async getFriendProfile(userId: number, friendId: number) {
+    const friend = await this.userRepo.findOne({
+      where: { id: friendId },
+      select: ['id', 'fullName', 'username', 'imageUrl', 'lastSeen'],
+    });
+
+    if (!friend) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Friend not found',
+      });
+    }
+
+    const friendship = await this.friendshipRepo.findOne({
+      where: [
+        { user: { id: userId }, friend: { id: friendId } },
+        { user: { id: friendId }, friend: { id: userId } },
+      ],
+      relations: ['user', 'friend'],
+      select: {
+        id: true,
+        status: true,
+        user: { id: true },
+        friend: { id: true },
+      },
+    });
+
+    return {
+      profile: friend,
+      friendship: friendship
+        ? {
+            status: friendship.status as FRIENDSHIP_STATUS,
+            role:
+              friendship.user.id === userId
+                ? FRIENDSHIP_REQUEST_STATUS.REQUESTED
+                : FRIENDSHIP_REQUEST_STATUS.RECEIVED,
+          }
+        : { status: null, role: null },
+    };
   }
 }

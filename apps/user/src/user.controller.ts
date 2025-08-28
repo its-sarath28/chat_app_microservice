@@ -81,13 +81,23 @@ export class UserController {
   }
 
   @MessagePattern(PATTERN.USER.SEARCH_USERS)
-  searchUsers(@Payload() data: { query: string }) {
-    return this.userService.searchUsers(data.query);
+  searchUsers(@Payload() data: { query: string; userId: number }) {
+    return this.userService.searchUsers(data.userId, data.query);
   }
 
   @MessagePattern(PATTERN.USER.GET_ONLINE_USERS)
   getOnlineUsers() {
     return this.userService.getOnlineUsers();
+  }
+
+  @MessagePattern(PATTERN.USER.SUGGESTED_FRIENDS)
+  getSuggestedFriends(@Payload() data: { userId: number }) {
+    return this.userService.getSuggestedFriends(data.userId);
+  }
+
+  @MessagePattern(PATTERN.USER.FRIEND_PROFILE)
+  getFriendProfile(@Payload() data: { userId: number; friendId: number }) {
+    return this.userService.getFriendProfile(data.userId, data.friendId);
   }
 
   // ====================================

@@ -19,10 +19,12 @@ export const PATTERN = {
 
     GET_FRIENDS: { cmd: 'get_friends' },
     SEND_REQUEST: { cmd: 'send_request' },
+    FRIEND_PROFILE: { cmd: 'friend_profile' },
     ACCEPT_REQUEST: { cmd: 'accept_request' },
     REJECT_REQUEST: { cmd: 'reject_request' },
     CHECK_IS_FRIENDS: { cmd: 'check_is_friends' },
     GET_ONLINE_USERS: { cmd: 'get_online_users' },
+    SUGGESTED_FRIENDS: { cmd: 'suggested_friends' },
     GET_INCOMING_REQUESTS: { cmd: 'get_incoming_requests' },
   },
   CHAT: {

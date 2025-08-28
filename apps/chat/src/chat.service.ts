@@ -89,6 +89,7 @@ export class ChatService {
         friendId: user?.id! as number,
         friendName: user?.fullName ?? 'Unknown',
         imageUrl: user?.imageUrl ?? null,
+        lastSeen: user?.lastSeen,
       };
     }
 
