@@ -62,8 +62,8 @@ export class ChatController {
   // ==========Member==========
   // ==========================
   @MessagePattern(PATTERN.CHAT.GET_MEMBERS)
-  getMembers(@Payload() conversationId: string) {
-    return this.chatService.getMembers(conversationId);
+  getMembers(@Payload() data: { conversationId: string }) {
+    return this.chatService.getMembers(data.conversationId);
   }
 
   @MessagePattern(PATTERN.CHAT.ADD_MEMBERS)

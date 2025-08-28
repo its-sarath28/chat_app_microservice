@@ -3,12 +3,17 @@ import { firstValueFrom } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 
-import { AuthenticatedSocket } from '@app/common/interface/socket/socket.interface';
-import { CHAT_CLIENT, USER_CLIENT } from '@app/common/token/token';
 import { ClientProxy } from '@nestjs/microservices';
 import { PATTERN } from '@app/common/pattern/pattern';
+import { CHAT_CLIENT, USER_CLIENT } from '@app/common/token/token';
 import { RedisProvider } from '../../../libs/redis/src/redis.provider';
 import { REDIS_PATTERN, SOCKET_EVENT } from '@app/common/pattern/event';
+import { AuthenticatedSocket } from '@app/common/interface/socket/socket.interface';
+import { NewMessagePayloadDto } from './dto/message.dto';
+import { MemberDocument } from 'apps/chat/schema/member.schema';
+import { User } from 'apps/user/entity/user.entity';
+import { MESSAGE_TYPE } from 'apps/chat/enum/chat.enum';
+import { ConversationDocument } from 'apps/chat/schema/conversation.schema';
 
 @Injectable()
 export class SocketGatewayService {
@@ -55,12 +60,9 @@ export class SocketGatewayService {
         REDIS_PATTERN.ONLINE_USERS,
       );
 
-      // client.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
-      client.emit('online_users', { users: onlineUsers });
-
-      // (Optional) broadcast to everyone else too
-      // this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
-      this.server.emit('online_users', { users: onlineUsers });
+      this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, {
+        users: onlineUsers,
+      });
 
       console.log(`✅ ${client.user.email} connected - ${client.id}`);
     } catch (err) {
@@ -81,30 +83,14 @@ export class SocketGatewayService {
         REDIS_PATTERN.ONLINE_USERS,
       );
 
-      // this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, { users: onlineUsers });
-      this.server.emit('online_users', { users: onlineUsers });
+      this.server.emit(SOCKET_EVENT.USER.ONLINE_USERS, {
+        users: onlineUsers,
+      });
     }
 
     this.connectedClients.delete(client.id);
 
     console.log(`❌ Client disconnected: ${client.id}`);
-  }
-
-  getClient(clientId: string): AuthenticatedSocket | undefined {
-    return this.connectedClients.get(clientId);
-  }
-
-  getAllClients(): AuthenticatedSocket[] {
-    return Array.from(this.connectedClients.values());
-  }
-
-  getClientByUserId(userId: string): AuthenticatedSocket | undefined {
-    for (const client of this.connectedClients.values()) {
-      if (client.user?.id === userId) {
-        return client;
-      }
-    }
-    return undefined;
   }
 
   getClientsByUserId(userId: string): AuthenticatedSocket[] {
@@ -127,18 +113,6 @@ export class SocketGatewayService {
     console.log(
       `📨 Sent "${event}" to user ${userId} (${clients.length} socket(s))`,
     );
-  }
-
-  broadcastExceptUser(userId: string, event: string, payload: any) {
-    const clients = this.getAllClients();
-
-    clients.forEach((client) => {
-      if (client.user?.id !== userId) {
-        client.emit(event, payload);
-      }
-    });
-
-    console.log(`📢 Broadcasted "${event}" to all except user ${userId}`);
   }
 
   async joinRoom(client: AuthenticatedSocket, conversationId: string) {
@@ -179,5 +153,106 @@ export class SocketGatewayService {
       REDIS_PATTERN.ONLINE_USERS,
     );
     return onlineUsers;
+  }
+
+  handleStartTyping(conversationId: string, client: AuthenticatedSocket) {
+    return this.sendToRoom(conversationId, SOCKET_EVENT.CHAT.TYPING_STARTED, {
+      userId: client.user?.id,
+      conversationId,
+    });
+  }
+
+  handleStopTyping(conversationId: string, client: AuthenticatedSocket) {
+    return this.sendToRoom(conversationId, SOCKET_EVENT.CHAT.TYPING_STOPPED, {
+      userId: client.user?.id,
+      conversationId,
+    });
+  }
+
+  async sendDirectMessage(
+    conversationId: string,
+    payload: NewMessagePayloadDto,
+  ) {
+    this.server
+      .to(conversationId)
+      .emit(SOCKET_EVENT.MESSAGE.NEW_DIRECT_MESSAGE, payload);
+
+    const sender: User = await firstValueFrom(
+      this.userClient.send(PATTERN.USER.FIND_BY_ID, { userId: payload.sender }),
+    );
+
+    const members: MemberDocument[] = await firstValueFrom(
+      this.chatClient.send(PATTERN.CHAT.GET_MEMBERS, { conversationId }),
+    );
+
+    const receiver = members.find((member) => member.userId !== payload.sender);
+    if (!receiver) return;
+
+    const receiverSockets = this.getClientsByUserId(receiver.userId.toString());
+
+    for (const socket of receiverSockets) {
+      const rooms = Array.from(socket.rooms);
+      const isInConversation = rooms.includes(conversationId);
+
+      if (!isInConversation) {
+        this.server
+          .to(socket.id)
+          .emit(SOCKET_EVENT.MESSAGE.NEW_MESSAGE_NOTIFICATION, {
+            title: `New message from ${sender.username || 'Unknown'}`,
+            message:
+              payload.messageType !== MESSAGE_TYPE.TEXT
+                ? payload.messageType
+                : payload.text,
+          });
+      }
+    }
+  }
+
+  async sendGroupMessage(
+    conversationId: string,
+    payload: NewMessagePayloadDto,
+  ) {
+    this.server
+      .to(conversationId)
+      .emit(SOCKET_EVENT.MESSAGE.NEW_GROUP_MESSAGE, payload);
+
+    const [conver, sender]: [ConversationDocument, User] = await Promise.all([
+      firstValueFrom(
+        this.chatClient.send(PATTERN.CHAT.GET_CONVERSATION, { conversationId }),
+      ),
+      firstValueFrom(
+        this.userClient.send(PATTERN.USER.FIND_BY_ID, {
+          userId: payload.sender,
+        }),
+      ),
+    ]);
+
+    const members: MemberDocument[] = await firstValueFrom(
+      this.chatClient.send(PATTERN.CHAT.GET_MEMBERS, { conversationId }),
+    );
+
+    for (const member of members) {
+      if (member.userId === payload.sender) continue;
+
+      const receiverSockets = this.getClientsByUserId(member.userId.toString());
+
+      for (const socket of receiverSockets) {
+        const rooms = Array.from(socket.rooms);
+        const isInConversation = rooms.includes(conversationId);
+
+        if (!isInConversation) {
+          this.server
+            .to(socket.id)
+            .emit(SOCKET_EVENT.MESSAGE.NEW_MESSAGE_NOTIFICATION, {
+              title: `${conver.groupName}`,
+              message: `${sender.username || 'Unknown'}: ${
+                payload.messageType !== MESSAGE_TYPE.TEXT
+                  ? payload.messageType
+                  : payload.text
+              }`,
+            });
+        }
+      }
+    }
   }
 }

@@ -13,6 +13,11 @@ export const SOCKET_EVENT = {
     UPDATE_MESSAGE: 'update_message',
     DELETE_MESSAGE: 'delete_message',
   },
+  MESSAGE: {
+    NEW_DIRECT_MESSAGE: 'new_direct_message',
+    NEW_GROUP_MESSAGE: 'new_group_message',
+    NEW_MESSAGE_NOTIFICATION: 'new_message_notification',
+  },
   USER: {
     ONLINE_USERS: 'online_users',
   },

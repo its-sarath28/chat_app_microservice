@@ -20,6 +20,7 @@ import { PATTERN } from '@app/common/pattern/pattern';
 import { User } from 'apps/user/entity/user.entity';
 import { firstValueFrom } from 'rxjs';
 import { SOCKET_EVENT } from '@app/common/pattern/event';
+import { NewMessagePayloadDto } from 'apps/socket-gateway/src/dto/message.dto';
 
 @Injectable()
 export class ChatService {
@@ -188,24 +189,29 @@ export class ChatService {
   // =========Message=========
   // =========================
   async createMessage(data: CreateMessageDto) {
-    // TODO: Upload media and get url
+    // TODO: Handle medias
 
     const newMessage: MessageDocument = await this.messageModel.create(data);
 
-    // TODO: Send message notification
+    const conver: ConversationDocument | null = await this.converModel.findById(
+      data.conversationId,
+    );
 
-    this.wsClient.emit(PATTERN.CHAT.NEW_MESSAGE, {
-      conversationId: newMessage.conversationId,
-      event: SOCKET_EVENT.CHAT.NEW_MESSAGE,
-      payload: {
+    if (conver) {
+      const pattern =
+        conver?.type === CHAT_TYPE.DIRECT
+          ? PATTERN.MESSAGE.NEW_DIRECT_MESSAGE
+          : PATTERN.MESSAGE.NEW_GROUP_MESSAGE;
+
+      this.wsClient.emit<NewMessagePayloadDto>(pattern, {
         conversationId: newMessage.conversationId,
-        messageId: newMessage._id as string,
+        messageId: newMessage._id,
         sender: newMessage.sender,
         messageType: newMessage.type,
         mediaUrl: newMessage.mediaUrl,
         text: newMessage.text,
-      },
-    });
+      });
+    }
 
     await this.updateLastMessage(data.conversationId, data.text || ' ');
 
@@ -250,16 +256,16 @@ export class ChatService {
       });
     }
 
-    this.wsClient.emit(PATTERN.CHAT.NEW_MESSAGE, {
-      conversationId: updatedMessage.conversationId,
-      event: SOCKET_EVENT.CHAT.UPDATE_MESSAGE,
-      payload: {
-        sender: updatedMessage.sender,
-        messageType: updatedMessage.type,
-        mediaUrl: updatedMessage.mediaUrl,
-        text: updatedMessage.text,
-      },
-    });
+    // this.wsClient.emit(PATTERN.CHAT.NEW_MESSAGE, {
+    //   conversationId: updatedMessage.conversationId,
+    //   event: SOCKET_EVENT.CHAT.UPDATE_MESSAGE,
+    //   payload: {
+    //     sender: updatedMessage.sender,
+    //     messageType: updatedMessage.type,
+    //     mediaUrl: updatedMessage.mediaUrl,
+    //     text: updatedMessage.text,
+    //   },
+    // });
 
     return { success: true, data: updatedMessage };
   }
@@ -299,22 +305,27 @@ export class ChatService {
   async getMembers(conversationId: string) {
     await this.checkConversationExists(conversationId);
 
-    const members: Member[] = await this.memberModel.find({ conversationId });
-
-    const formatted = members.map(async (member: Member) => {
-      const user: User = await firstValueFrom(
-        this.userClient.send(PATTERN.USER.GET_PROFILE, {
-          userId: member.userId,
-        }),
-      );
-
-      return {
-        memberId: member._id,
-        fullName: user.fullName,
-        imageUrl: user.imageUrl ?? null,
-        joinedOn: member.joinedOn,
-      };
+    const members: Member[] = await this.memberModel.find({
+      conversationId: new mongoose.Types.ObjectId(conversationId),
     });
+
+    const formatted = await Promise.all(
+      members.map(async (member: Member) => {
+        const user: User = await firstValueFrom(
+          this.userClient.send(PATTERN.USER.GET_PROFILE, {
+            userId: member.userId,
+          }),
+        );
+
+        return {
+          memberId: member._id,
+          fullName: user.fullName,
+          imageUrl: user.imageUrl ?? null,
+          joinedOn: member.joinedOn,
+          userId: member.userId,
+        };
+      }),
+    );
 
     return formatted;
   }

@@ -13,7 +13,6 @@ import { SocketGatewayService } from './socket-gateway.service';
 
 import { AuthenticatedSocket } from '@app/common/interface/socket/socket.interface';
 import { SOCKET_EVENT } from '@app/common/pattern/event';
-import { UnauthorizedException } from '@nestjs/common';
 
 @WebSocketGateway()
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -48,5 +47,21 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
     return this.wsService.leaveRoom(client, data.conversationId);
+  }
+
+  @SubscribeMessage(SOCKET_EVENT.CHAT.TYPING_STARTED)
+  handleStartTyping(
+    @MessageBody() data: { conversationId: string },
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    return this.wsService.handleStartTyping(data.conversationId, client);
+  }
+
+  @SubscribeMessage(SOCKET_EVENT.CHAT.TYPING_STOPPED)
+  handleStopTyping(
+    @MessageBody() data: { conversationId: string },
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    return this.wsService.handleStopTyping(data.conversationId, client);
   }
 }

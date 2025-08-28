@@ -38,13 +38,16 @@ export const PATTERN = {
     CREATE_MESSAGE: { cmd: 'create_message' },
     GET_ALL_MESSAGES: { cmd: 'get_all_messages' },
     GET_MESSAGE: { cmd: 'get_message' },
-    NEW_MESSAGE: { cmd: 'new_message' },
 
     GET_MEMBERS: { cmd: 'get_members' },
     ADD_MEMBERS: { cmd: 'add_members' },
     REMOVE_MEMBER: { cmd: 'remove_member' },
     GET_MEMBER_ROLE: { cmd: 'get_member_role' },
     CHANGE_MEMBER_ROLE: { cmd: 'change_member_role' },
+  },
+  MESSAGE: {
+    NEW_DIRECT_MESSAGE: { cmd: 'new_direct_message' },
+    NEW_GROUP_MESSAGE: { cmd: 'new_group_message' },
   },
   NOTIFICATION: {
     CREATE_NEW_NOTIFICATION: { cmd: 'create_new_notification' },
