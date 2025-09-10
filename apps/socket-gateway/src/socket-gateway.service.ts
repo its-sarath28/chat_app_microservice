@@ -189,6 +189,17 @@ export class SocketGatewayService {
     if (!receiver) return;
 
     const receiverSockets = this.getClientsByUserId(receiver.userId.toString());
+    const senderSockets = this.getClientsByUserId(payload.sender.toString());
+
+    for (const socket of senderSockets) {
+      this.server
+        .to(socket.id)
+        .emit(SOCKET_EVENT.CHAT.UPDATE_CONVERSATION_LIST, {
+          conversationId,
+          messageType: payload.messageType,
+          message: payload.text,
+        });
+    }
 
     for (const socket of receiverSockets) {
       const rooms = Array.from(socket.rooms);
@@ -230,6 +241,18 @@ export class SocketGatewayService {
     const members: MemberDocument[] = await firstValueFrom(
       this.chatClient.send(PATTERN.CHAT.GET_MEMBERS, { conversationId }),
     );
+
+    const senderSockets = this.getClientsByUserId(payload.sender.toString());
+
+    for (const socket of senderSockets) {
+      this.server
+        .to(socket.id)
+        .emit(SOCKET_EVENT.CHAT.UPDATE_CONVERSATION_LIST, {
+          conversationId,
+          messageType: payload.messageType,
+          message: payload.text,
+        });
+    }
 
     for (const member of members) {
       if (member.userId === payload.sender) continue;

@@ -12,6 +12,7 @@ export const SOCKET_EVENT = {
     NEW_MESSAGE: 'new_message',
     UPDATE_MESSAGE: 'update_message',
     DELETE_MESSAGE: 'delete_message',
+    UPDATE_CONVERSATION_LIST: 'update_conversation_list',
   },
   MESSAGE: {
     NEW_DIRECT_MESSAGE: 'new_direct_message',
