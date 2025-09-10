@@ -120,6 +120,9 @@ export class UserService {
   }
 
   async getFriendProfile(userId: number, friendId: number) {
-    return this.userClient.send(PATTERN.USER.FIND_BY_ID, { userId, friendId });
+    return this.userClient.send(PATTERN.USER.FRIEND_PROFILE, {
+      userId,
+      friendId,
+    });
   }
 }
