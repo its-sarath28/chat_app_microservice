@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { ChatController } from './chat.controller';
-import { ChatService } from './chat.service';
-
 import { ConversationSchema } from '../schema/conversation.schema';
 import { MemberSchema } from '../schema/member.schema';
 import { MessageSchema } from '../schema/message.schema';
@@ -15,6 +12,15 @@ import {
   USER_QUEUE,
 } from '@app/common/token/token';
 import { ConfigModule } from '@nestjs/config';
+import { RedisModule } from '@app/redis';
+
+import { ConversationService } from './service/conversation.service';
+import { MessageService } from './service/message.service';
+import { MemberService } from './service/member.service';
+
+import { ConversationController } from './controller/conversation.controller';
+import { MessageController } from './controller/message.controller';
+import { MemberController } from './controller/member.controller';
 
 @Module({
   imports: [
@@ -46,8 +52,9 @@ import { ConfigModule } from '@nestjs/config';
         },
       },
     ]),
+    RedisModule,
   ],
-  controllers: [ChatController],
-  providers: [ChatService],
+  controllers: [ConversationController, MessageController, MemberController],
+  providers: [ConversationService, MessageService, MemberService],
 })
 export class ChatModule {}

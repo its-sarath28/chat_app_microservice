@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { MESSAGE_TYPE } from '../enum/chat.enum';
 
-export type MessageDocument = Message & Document;
+export type MessageDocument = Message & Document<Types.ObjectId>;
 
 @Schema()
 export class Message {

@@ -40,6 +40,37 @@ export class RedisProvider implements OnModuleInit, OnModuleDestroy {
     return this.client.get(key);
   }
 
+  async setJson(key: string, value: any, ttlSeconds?: number): Promise<void> {
+    const json = JSON.stringify(value);
+    if (ttlSeconds) {
+      await this.client.set(key, json, 'EX', ttlSeconds);
+    } else {
+      await this.client.set(key, json);
+    }
+  }
+
+  /** Get JSON value */
+  async getJson<T = any>(key: string): Promise<T | null> {
+    const data = await this.client.get(key);
+    return data ? (JSON.parse(data) as T) : null;
+  }
+
+  /** Add item to the start of a list */
+  async lpush(key: string, value: any): Promise<void> {
+    await this.client.lpush(key, JSON.stringify(value));
+  }
+
+  /** Get list items (range) */
+  async lrange<T = any>(key: string, start = 0, stop = -1): Promise<T[]> {
+    const res = await this.client.lrange(key, start, stop);
+    return res.map((item) => JSON.parse(item) as T);
+  }
+
+  /** Trim list to keep only given range */
+  async ltrim(key: string, start: number, stop: number): Promise<void> {
+    await this.client.ltrim(key, start, stop);
+  }
+
   /** Add a member to a set */
   async sadd(key: string, member: string): Promise<number> {
     return this.client.sadd(key, member);
