@@ -76,8 +76,8 @@ export class UserController {
   }
 
   @MessagePattern(PATTERN.USER.GET_INCOMING_REQUESTS)
-  getIncomingRequests(@Payload() data: { userId: number }) {
-    return this.userService.getIncomingRequests(data.userId);
+  getRequests(@Payload() data: { type: 'Received' | 'Send'; userId: number }) {
+    return this.userService.getRequests(data.type, data.userId);
   }
 
   @MessagePattern(PATTERN.USER.SEARCH_USERS)

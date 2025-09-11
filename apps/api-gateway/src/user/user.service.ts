@@ -101,9 +101,12 @@ export class UserService {
     );
   }
 
-  async getIncomingRequests(userId: number) {
+  async getRequests(type: 'Received' | 'Send', userId: number) {
     return await firstValueFrom(
-      this.userClient.send(PATTERN.USER.GET_INCOMING_REQUESTS, { userId }),
+      this.userClient.send(PATTERN.USER.GET_INCOMING_REQUESTS, {
+        type,
+        userId,
+      }),
     );
   }
 

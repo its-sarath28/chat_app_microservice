@@ -344,21 +344,38 @@ export class UserService {
     });
   }
 
-  async getIncomingRequests(userId: number) {
-    const requests = await this.friendshipRepo.find({
-      where: {
-        friend: { id: userId },
-        status: FRIENDSHIP_STATUS.PENDING,
-      },
-      relations: ['user'],
-    });
+  async getRequests(type: 'Received' | 'Send', userId: number) {
+    if (type === 'Received') {
+      const requests = await this.friendshipRepo.find({
+        where: {
+          friend: { id: userId },
+          status: FRIENDSHIP_STATUS.PENDING,
+        },
+        relations: ['user'],
+      });
 
-    return requests.map((req) => ({
-      id: req.user.id,
-      fullName: req.user.fullName,
-      username: req.user.username,
-      imageUrl: req.user.imageUrl,
-    }));
+      return requests.map((req) => ({
+        id: req.user.id,
+        fullName: req.user.fullName,
+        username: req.user.username,
+        imageUrl: req.user.imageUrl,
+      }));
+    } else {
+      const requests = await this.friendshipRepo.find({
+        where: {
+          user: { id: userId },
+          status: FRIENDSHIP_STATUS.PENDING,
+        },
+        relations: ['friend'],
+      });
+
+      return requests.map((req) => ({
+        id: req.friend.id,
+        fullName: req.friend.fullName,
+        username: req.friend.username,
+        imageUrl: req.friend.imageUrl,
+      }));
+    }
   }
 
   async updateLastSeen(id: number) {

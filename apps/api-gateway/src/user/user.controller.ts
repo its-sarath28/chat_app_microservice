@@ -47,8 +47,8 @@ export class UserController {
 
   @Get('friend/requests')
   @UseGuards(AuthGuard())
-  getIncomingRequests(@Req() req: AuthUser) {
-    return this.userService.getIncomingRequests(req.user.id);
+  getRequests(@Query('type') type: 'Received' | 'Send', @Req() req: AuthUser) {
+    return this.userService.getRequests(type, req.user.id);
   }
 
   @Get('friend/online')
